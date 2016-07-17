@@ -26,3 +26,4 @@ executable tyke
                      , gloss-rendering
                      , GLUT
                      , reactive-banana
+                     , text
