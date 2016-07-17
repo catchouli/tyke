@@ -47,10 +47,10 @@ gameInWindow title (width, height) initialState input update render = do
                       let quit = any (== SDL.QuitEvent) . map SDL.eventPayload $ events
 
                       -- Run input handler and update game state
-                      let newState = update $ foldl' input state events
+                      let newState = update . foldl' input state $ events
 
                       -- Render game
-                      renderGame $ render newState
+                      renderGame . render $ newState
 
                       -- Swap buffer
                       SDL.glSwapWindow window
