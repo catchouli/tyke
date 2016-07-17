@@ -3,6 +3,7 @@ module Window
   )
 where
 
+import Data.List (foldl')
 import Linear (V2(..), V4(..))
 import Control.Monad (unless)
 import Data.Text (Text)
@@ -15,8 +16,9 @@ import qualified Graphics.UI.GLUT.Initialization as GLUT
 
 
 -- Run an application in a window using a given update, render, and input function
-gameInWindow :: Text -> (Int, Int) -> a -> (a -> a) -> (a -> Gloss.Picture) -> IO ()
-gameInWindow title (width, height) initialState update render = do
+gameInWindow :: Text -> (Int, Int) -> a -> (a -> SDL.Event -> a)
+                    -> (a -> a) -> (a -> Gloss.Picture) -> IO ()
+gameInWindow title (width, height) initialState input update render = do
   -- Initialise SDL
   SDL.initializeAll
   window <- SDL.createWindow title SDL.defaultWindow { SDL.windowOpenGL = Just SDL.defaultOpenGL
@@ -40,7 +42,7 @@ gameInWindow title (width, height) initialState update render = do
   -- Main loop
   let loop state = do events <- SDL.pollEvents
                       let quit = any (== SDL.QuitEvent) . map SDL.eventPayload $ events
-                      let newState = update state
+                      let newState = update $ foldl' input state events
                       renderGame $ render newState
                       SDL.glSwapWindow window
                       unless quit (loop newState)

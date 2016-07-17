@@ -1,21 +1,34 @@
 module Game
   ( initialGameState
+  , input
   , update
   , render
+  , Evt
+  , test
   )
 where
 
+import Data.List (foldl')
+
+import qualified SDL.Event                       as SDL
 import qualified Graphics.Gloss                  as Gloss
 import qualified Graphics.Gloss.Rendering        as Gloss
 
-
 data Game = Game { counter :: Int }
+
+data Evt = Inc | Dec deriving Show
+test i Inc = i + 1
+test i Dec = i - 1
 
 
 -- The initial game state
 initialGameState :: Game
 initialGameState = Game 0
 
+
+-- Handle input
+input :: Game -> SDL.Event -> Game
+input game (SDL.Event timestamp payload) = game { counter = counter game + 1 }
 
 -- Update the game state
 update :: Game -> Game
