@@ -11,4 +11,4 @@ width, height :: Int
 
 -- main
 main :: IO ()
-main = gameInWindow "Physy" (width, height) initialGameState render
+main = gameInWindow "Physy" (width, height) initialGameState update render

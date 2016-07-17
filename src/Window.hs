@@ -15,8 +15,8 @@ import qualified Graphics.UI.GLUT.Initialization as GLUT
 
 
 -- Run an application in a window using a given update, render, and input function
-gameInWindow :: Text -> (Int, Int) -> a -> (a -> Gloss.Picture) -> IO ()
-gameInWindow title (width, height) initialState render = do
+gameInWindow :: Text -> (Int, Int) -> a -> (a -> a) -> (a -> Gloss.Picture) -> IO ()
+gameInWindow title (width, height) initialState update render = do
   -- Initialise SDL
   SDL.initializeAll
   window <- SDL.createWindow title SDL.defaultWindow { SDL.windowOpenGL = Just SDL.defaultOpenGL
@@ -38,12 +38,13 @@ gameInWindow title (width, height) initialState render = do
   let renderGame = Gloss.displayPicture (width, height) Gloss.black glossState 1.0
 
   -- Main loop
-  let loop = do events <- SDL.pollEvents
-                let quit = any (== SDL.QuitEvent) . map SDL.eventPayload $ events
-                renderGame $ render initialState
-                SDL.glSwapWindow window
-                unless quit loop
-    in loop
+  let loop state = do events <- SDL.pollEvents
+                      let quit = any (== SDL.QuitEvent) . map SDL.eventPayload $ events
+                      let newState = update state
+                      renderGame $ render newState
+                      SDL.glSwapWindow window
+                      unless quit (loop newState)
+    in loop initialState
 
   -- Cleanup. Important for ghci use
   SDL.glDeleteContext context
