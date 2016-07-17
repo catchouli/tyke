@@ -3,8 +3,6 @@ module Game
   , input
   , update
   , render
-  , Evt
-  , test
   )
 where
 
@@ -15,10 +13,6 @@ import qualified Graphics.Gloss                  as Gloss
 import qualified Graphics.Gloss.Rendering        as Gloss
 
 data Game = Game { counter :: Int }
-
-data Evt = Inc | Dec deriving Show
-test i Inc = i + 1
-test i Dec = i - 1
 
 
 -- The initial game state

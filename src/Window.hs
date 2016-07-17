@@ -40,12 +40,24 @@ gameInWindow title (width, height) initialState input update render = do
   let renderGame = Gloss.displayPicture (width, height) Gloss.black glossState 1.0
 
   -- Main loop
-  let loop state = do events <- SDL.pollEvents
+  let loop state = do -- Poll for events
+                      events <- SDL.pollEvents
+
+                      -- Check for a quit event
                       let quit = any (== SDL.QuitEvent) . map SDL.eventPayload $ events
+
+                      -- Run input handler and update game state
                       let newState = update $ foldl' input state events
+
+                      -- Render game
                       renderGame $ render newState
+
+                      -- Swap buffer
                       SDL.glSwapWindow window
+
+                      -- Loop, or quit if requested
                       unless quit (loop newState)
+
     in loop initialState
 
   -- Cleanup. Important for ghci use
