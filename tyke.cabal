@@ -25,5 +25,5 @@ executable tyke
                      , gloss
                      , gloss-rendering
                      , GLUT
-                     , reactive-banana
                      , text
+                     , netwire

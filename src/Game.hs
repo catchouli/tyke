@@ -1,12 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Game
-  ( gameNetwork
+  ( initialGameState
+  , update
+  , render
   )
 where
-
-import Reactive.Banana
-import Reactive.Banana.Frameworks
 
 import qualified SDL.Event                       as SDL
 import qualified SDL.Input.Keyboard              as SDL
@@ -19,38 +18,14 @@ data Game = Game { counter :: Int
                  , pos :: (Int, Int)
                  }
 
+
 -- Function to render a gloss picture
-renderGame glossState = Gloss.displayPicture (800, 600) Gloss.black glossState 1.0
+initialGameState = Game 0 (0, 0)
 
 
--- The game network
--- I wish I could avoid passing this gloss state
-gameNetwork :: Gloss.State -> Event (SDL.Event) -> Event () -> MomentIO (Behavior (IO ()))
-gameNetwork glossState eInput eUpdate = do
-  let filterKeyEvent e = (\case SDL.KeyboardEvent _ -> True; _ -> False) $ SDL.eventPayload e
-  let filterKey scancode (SDL.Event _ (SDL.KeyboardEvent (SDL.KeyboardEventData _ _ _ (SDL.Keysym eScan _ _)))) = eScan == scancode
-
-  let keyEvents = filterE filterKeyEvent eInput
-  let leftKeyEvent  = filterE (filterKey SDL.ScancodeLeft)  keyEvents
-  let rightKeyEvent = filterE (filterKey SDL.ScancodeRight) keyEvents
-  let downKeyEvent  = filterE (filterKey SDL.ScancodeDown)  keyEvents
-  let upKeyEvent    = filterE (filterKey SDL.ScancodeUp)    keyEvents
-
-  playerX <- accumB (0 :: Int) $ unions [ subtract 9 <$ leftKeyEvent
-                                        , (+9)       <$ rightKeyEvent ]
-  playerY <- accumB (0 :: Int) $ unions [ subtract 9 <$ downKeyEvent
-                                        , (+9)       <$ upKeyEvent ]
-
-  let bPos = (,) <$> playerX <*> playerY
-
-  -- Count input events
-  bCounter <- accumB 0 $ unions [ (+1) <$ keyEvents ]
-
-  -- Compose game behaviour
-  let bGame = Game <$> bCounter <*> bPos
-
-  -- Compose game rendering
-  return $ renderGame glossState . render <$> bGame
+-- Update the game
+update :: Game -> Game
+update = id
 
 
 -- Render the game to a Gloss.Picture
