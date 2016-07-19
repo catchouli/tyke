@@ -32,7 +32,8 @@ type GameState x e a = (Session Identity GameSession, GameWire e a, Game)
 initialGameState :: GameState x e a
 initialGameState = let session = countSession 1 <*> pure ()
                        wire = Game <$> counterWire
-                       game = Game 0.0
+                       -- This means if update doesn't get called before render it'll break
+                       game = undefined
                     in (session, wire, game)
 
 
