@@ -33,7 +33,7 @@ initialGameState :: GameState x e a
 initialGameState = let session = countSession 1 <*> pure ()
                        wire = Game <$> counterWire
                        -- This means if update doesn't get called before render it'll break
-                       game = undefined
+                       game = (\(_, _, g) -> g) (update (session, wire, undefined))
                     in (session, wire, game)
 
 
