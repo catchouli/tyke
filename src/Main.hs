@@ -2,6 +2,7 @@
 
 module Main where
 
+import Framework
 import Game
 import GameLoop
 import Window
@@ -16,4 +17,6 @@ width, height :: Int
 
 -- main
 main :: IO ()
-main = gameInWindow "Physy" (width, height) initialGameState update render
+main = do
+  (input, tick, render) <- hostGame (width, height) gameNetwork renderGame
+  gameInWindow "Physy" (width, height) input tick render

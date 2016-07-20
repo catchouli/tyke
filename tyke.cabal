@@ -27,3 +27,6 @@ executable tyke
                      , GLUT
                      , text
                      , netwire
+                     , reflex
+                     , frpnow
+                     , reactive-banana
