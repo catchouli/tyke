@@ -26,7 +26,5 @@ executable tyke
                      , gloss-rendering
                      , GLUT
                      , text
-                     , netwire
-                     , reflex
-                     , frpnow
                      , reactive-banana
+                     , time

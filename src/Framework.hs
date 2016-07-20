@@ -1,5 +1,6 @@
 module Framework
   ( hostGame
+  , TickType
   , InputEvent
   , TickEvent
   , InputHandler

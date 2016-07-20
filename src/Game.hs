@@ -15,7 +15,8 @@ data Game = Game { _counter :: Double
                  }
 
 
--- The overall game behavior, which takes input and tick events and produces a Game
+-- The overall game behavior, which takes input and tick events
+-- and produces a Game
 gameNetwork :: InputEvent -> TickEvent -> MomentIO (Behavior Game)
 gameNetwork eInput eTick = do
   bCounter <- accumB 0 $ (+1) <$ eTick
@@ -26,7 +27,8 @@ gameNetwork eInput eTick = do
 renderGame :: Game -> Gloss.Picture
 renderGame game =
   let count = _counter game
-      (playerX, playerY) = (0, 0)
-    in Gloss.Pictures [ Gloss.Color Gloss.white $ Gloss.translate (fromIntegral playerX) (fromIntegral playerY) $ Gloss.circle 10
-                      , Gloss.Color Gloss.white $ Gloss.text (show count)
+      colour = Gloss.Color Gloss.white
+      playerTranslation = Gloss.translate 0 0
+    in Gloss.Pictures [ colour . playerTranslation $ Gloss.circle 10
+                      , colour $ Gloss.text (show count)
                       ]

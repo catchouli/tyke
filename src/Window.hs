@@ -7,23 +7,39 @@ import Framework
 
 import Data.List (foldl')
 import Linear (V2(..), V4(..))
-import Control.Monad (unless)
+import Control.Monad (unless, replicateM_)
 import Data.Text (Text)
 import Foreign.C.Types
+import Data.Time.Clock.POSIX
 
 import qualified SDL
 import qualified Graphics.Gloss                  as Gloss
 import qualified Graphics.Gloss.Rendering        as Gloss
 import qualified Graphics.UI.GLUT.Initialization as GLUT
 
--- Run an application in a window using an initial state, and a given update and render function
-gameInWindow :: Text -> (Int, Int) -> InputHandler -> TickHandler -> RenderHandler -> IO ()
-gameInWindow title (width, height) inputHandler tickHandler renderHandler = do
+
+-- Run an application in a window using an initial state,
+-- and a given update and render function
+gameInWindow :: Fractional a => Text
+             -> TickType
+             -> (Int, Int)
+             -> InputHandler
+             -> TickHandler
+             -> RenderHandler
+             -> IO ()
+gameInWindow title fTimestep (width, height)
+             inputHandler tickHandler renderHandler = do
   -- Initialise SDL
   SDL.initializeAll
-  window <- SDL.createWindow title SDL.defaultWindow { SDL.windowOpenGL = Just SDL.defaultOpenGL
-                                                     , SDL.windowInitialSize = V2 (fromIntegral width) (fromIntegral height)
-                                                     }
+
+  -- Construct window description
+  let windowDims = V2 (fromIntegral width) (fromIntegral height)
+  let windowDesc = SDL.defaultWindow { SDL.windowOpenGL = Just SDL.defaultOpenGL
+                                     , SDL.windowInitialSize = windowDims
+                                     }
+
+  -- Create window
+  window <- SDL.createWindow title windowDesc
 
   -- Create opengl context
   context <- SDL.glCreateContext window
@@ -37,28 +53,44 @@ gameInWindow title (width, height) inputHandler tickHandler renderHandler = do
   GLUT.initialize "" []
 
   -- Function to render a gloss picture
-  let renderPicture = Gloss.displayPicture (800, 600) Gloss.black glossState 1.0
+  let renderPicture = Gloss.displayPicture (width, height) Gloss.black
+                                           glossState 1.0
+
+  let timestep = realToFrac fTimestep
 
   -- Main loop
-  let loop = do -- Poll for events
-                events <- SDL.pollEvents
+  let loop lastTime = do 
 
-                -- Check for a quit event
-                let quit = any (== SDL.QuitEvent) . map SDL.eventPayload $ events
+      -- Current time
+      currentTime <- getPOSIXTime
 
-                -- Update the state and render
-                mapM_ inputHandler events
-                tickHandler 0.1
-                print "render"
-                renderHandler
+      -- Calculate passed timesteps and update lastTime
+      let passedTime = currentTime - lastTime
+      let passedTimeSteps = fromIntegral . round $ passedTime / realToFrac timestep
+      let newLastTime = lastTime + passedTimeSteps * timestep
 
-                -- Swap buffer
-                SDL.glSwapWindow window
+      -- Poll for events
+      events <- SDL.pollEvents
 
-                -- Loop, or quit if requested
-                unless quit loop
+      -- Check for a quit event
+      let quit = any (== SDL.QuitEvent) . map SDL.eventPayload $ events
 
-    in loop
+      -- Send events to the input event sink
+      mapM_ inputHandler events
+
+      -- Perform tick however many times we need to meet the fixed timestep
+      replicateM_ 5 (tickHandler fTimestep)
+
+      -- Render the game
+      renderHandler
+
+      -- Swap buffer
+      SDL.glSwapWindow window
+
+      -- Loop, or quit if requested
+      unless quit (loop newLastTime)
+
+    in getPOSIXTime >>= loop
 
   -- Cleanup. Important for ghci use
   SDL.glDeleteContext context
