@@ -26,27 +26,27 @@ import qualified Graphics.Gloss                  as Gloss
 import qualified Graphics.Gloss.Rendering        as Gloss
 
 
--- A generic event source type alias
+-- | A generic event source type alias
 type EventSource a = (AddHandler a, Handler a)
 
--- The time type to use for the tick event
+-- | The time type to use for the tick event
 type TickType = Float
 
--- Event types to be used in implementing a game behavior
+-- | Event types to be used in implementing a game behavior
 type InputEvent = Event SDL.Event
 type TickEvent = Event TickType
 type RenderEvent = Event ()
 
--- Handlers returned from hostGame for actually running the game
+-- | Handlers returned from hostGame for actually running the game
 type InputHandler = SDL.Event -> IO ()
 type TickHandler = TickType -> IO ()
 type RenderHandler = IO ()
 
--- The game render function, where a is the game type (or anything else)
+-- | The game render function, where a is the game type (or anything else)
 type RenderFunction a = a -> Gloss.Picture
 
 
--- Host a game, i.e. set up the necessary 
+-- | Host a game, i.e. set up the necessary events and generate handlers
 hostGame :: (Int, Int)
          -> (InputEvent -> TickEvent -> MomentIO (Behavior a))
          -> RenderFunction a
