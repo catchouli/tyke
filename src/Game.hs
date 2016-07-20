@@ -11,7 +11,7 @@ import Reactive.Banana.Frameworks
 import qualified Graphics.Gloss                  as Gloss
 
 
-data Game = Game { _counter :: Double
+data Game = Game { _counter :: Float
                  }
 
 
@@ -19,8 +19,14 @@ data Game = Game { _counter :: Double
 -- and produces a Game
 gameNetwork :: InputEvent -> TickEvent -> MomentIO (Behavior Game)
 gameNetwork eInput eTick = do
-  bCounter <- accumB 0 $ (+1) <$ eTick
-  return $ Game <$> bCounter
+  -- Current time as an event
+  eTime <- accumE 0 ((+) <$> eTick)
+
+  -- Current time as a behavior
+  bTime <- stepper 0 eTime
+
+  -- The overall game behavior
+  return $ Game <$> bTime
   
 
 -- Render the game to a Gloss.Picture
