@@ -1,3 +1,12 @@
+-- | 
+-- Module      :  Framework
+-- Description :  Takes the game network and produces IO handlers to run it
+-- Copyright   :  (c) 2016 Caitlin Wilks
+-- License     :  BSD3
+-- Maintainer  :  Caitlin Wilks <mitasuki@gmail.com>
+-- 
+-- 
+
 module Framework
   ( hostGame
   , TickType

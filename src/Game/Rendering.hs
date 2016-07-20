@@ -1,3 +1,13 @@
+-- | 
+-- Module      :  Game.Rendering
+-- Description :  Exposes the renderGame function and is the 
+--                entry point into the main rendering path for the game
+-- Copyright   :  (c) 2016 Caitlin Wilks
+-- License     :  BSD3
+-- Maintainer  :  Caitlin Wilks <mitasuki@gmail.com>
+-- 
+-- 
+
 module Game.Rendering
   ( renderGame
   )
@@ -7,7 +17,8 @@ import Game.Data
 import qualified Graphics.Gloss                  as Gloss
   
 
--- Render the game to a Gloss.Picture
+-- | Render the Game data to a gloss picture
+
 renderGame :: Game -> Gloss.Picture
 renderGame game =
   let count = _counter game
