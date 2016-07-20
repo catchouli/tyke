@@ -21,4 +21,5 @@ where
 -- the behavior of the game.
 
 data Game = Game { _counter :: Float
+                 , _playerPos :: (Float, Float)
                  }

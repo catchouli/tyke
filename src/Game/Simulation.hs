@@ -12,11 +12,14 @@ module Game.Simulation
   )
 where
 
-import Game.Data
 import Framework
+import Game.Data
+import Game.Simulation.Input
 import Reactive.Banana
 import Reactive.Banana.Frameworks
 
+import qualified SDL.Event          as SDL
+import qualified SDL.Input.Keyboard as SDL
 
 -- | The overall game behavior, which takes input and tick events
 -- and produces a Game
@@ -28,5 +31,10 @@ gameNetwork eInput eTick = do
   -- Current time as a behavior
   bTime <- stepper 0 eTime
 
+  bAPressed <- keyDown eInput SDL.ScancodeA
+
+  --bCount <- accumB 0 $ (+1) <$ keyReleased eInput SDL.ScancodeA
+  let bCount = fmap (\b -> if b then 1 else 0) bAPressed
+
   -- The overall game behavior
-  return $ Game <$> bTime
+  return $ Game <$> bCount <*> pure (0, 0)
