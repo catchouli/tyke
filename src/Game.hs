@@ -25,20 +25,19 @@ counterWire = integral 0 . (pure 1)
 -- The game state type, comprising of a session (fixed timestep), a main game wire, and the last game state
 type GameSession = Timed NominalDiffTime ()
 type GameWire e a = Wire GameSession e Identity a Game
-type GameState x e a = (Session Identity GameSession, GameWire e a, Game)
+type GameState e a = (Session Identity GameSession, GameWire e a, Game)
 
 
 -- The initial game state
-initialGameState :: GameState x e a
+initialGameState :: GameState e a
 initialGameState = let session = countSession 1 <*> pure ()
                        wire = Game <$> counterWire
-                       -- This means if update doesn't get called before render it'll break
                        game = (\(_, _, g) -> g) (update (session, wire, undefined))
                     in (session, wire, game)
 
 
 -- Update the game
-update :: GameState Int e () -> GameState Int e ()
+update :: GameState e () -> GameState e ()
 update (session, wire, _) = let (s, session') = runIdentity $ stepSession session
                                 (r, wire') = runIdentity $ stepWire wire s (Right mempty)
                                 -- Irrefutable if the game wire inhibits
@@ -47,6 +46,7 @@ update (session, wire, _) = let (s, session') = runIdentity $ stepSession sessio
 
 
 -- Render the game to a Gloss.Picture
+render :: GameState e () -> Gloss.Picture
 render (_, _, game) =
   let count = _counter game
       (playerX, playerY) = (0, 0)
