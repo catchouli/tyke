@@ -21,6 +21,7 @@ import Reactive.Banana.Frameworks
 import qualified SDL.Event          as SDL
 import qualified SDL.Input.Keyboard as SDL
 
+
 -- | The overall game behavior, which takes input and tick events
 -- and produces a Game
 gameNetwork :: InputEvent -> TickEvent -> MomentIO (Behavior Game)
@@ -37,4 +38,4 @@ gameNetwork eInput eTick = do
   let bCount = fmap (\b -> if b then 1 else 0) bAPressed
 
   -- The overall game behavior
-  return $ Game <$> bCount <*> pure (0, 0)
+  return $ Game <$> bTime <*> pure (0, 0)

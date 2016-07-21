@@ -76,8 +76,8 @@ gameInWindow title fTimestep (width, height)
 
         -- Calculate passed timesteps and update lastTime
         let passedTime = currentTime - lastTime
-        let passedTimeSteps = fromIntegral . round $ passedTime / realToFrac timestep
-        let newLastTime = lastTime + passedTimeSteps * timestep
+        let passedTimeSteps = round $ passedTime / realToFrac timestep
+        let newLastTime = lastTime + (fromIntegral passedTimeSteps) * timestep
 
         -- Poll for events
         events <- SDL.pollEvents
@@ -89,7 +89,7 @@ gameInWindow title fTimestep (width, height)
         mapM_ inputHandler events
 
         -- Perform tick however many times we need to meet the fixed timestep
-        replicateM_ 5 (tickHandler fTimestep)
+        replicateM_ passedTimeSteps (tickHandler fTimestep)
 
         -- Render the game
         renderHandler
