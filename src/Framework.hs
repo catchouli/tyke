@@ -43,7 +43,7 @@ type TickHandler = TickType -> IO ()
 type RenderHandler = IO ()
 
 -- | The game render function, where a is the game type (or anything else)
-type RenderFunction a = a -> Gloss.Picture
+type RenderFunction a = a -> IO ()
 
 
 -- | Host a game, i.e. set up the necessary events and generate handlers
@@ -59,7 +59,6 @@ hostGame dimensions gameNetwork renderFun = do
 
   -- Create a gloss state for the render event
   glossState <- Gloss.initState
-  let renderGame = Gloss.displayPicture dimensions Gloss.black glossState 1.0
 
   -- Compile the event network
   network <- compile $ do
@@ -73,7 +72,7 @@ hostGame dimensions gameNetwork renderFun = do
     -- Create a game event that fires when the render event does,
     -- then fmap a function Gloss.Picture -> IO () into it to have it
     -- produce an IO () that draws the game
-    reactimate ((renderGame . renderFun) <$> (bGame <@ eRender))
+    reactimate (renderFun <$> (bGame <@ eRender))
 
   actuate network
 

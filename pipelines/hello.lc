@@ -1,0 +1,22 @@
+makeFrame (pos :: Vec 3 Float)
+          (time :: Float)
+          (texture :: Texture)
+          (prims :: PrimitiveStream Triangle (Vec 2 Float, Vec 2 Float))
+
+    = imageFrame ((emptyColorImage (V4 0 0 0.4 1)))
+  `overlay`
+      prims
+    & mapPrimitives (\(p,uv) -> ((projmat pos) *. (V4 p%x p%y (-1) 1), uv))
+    & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) ((Smooth))
+    & mapFragments (\((uv)) -> ((texture2D (Sampler PointFilter MirroredRepeat texture) uv)))
+    & accumulateWith ((ColorOp NoBlending (V4 True True True True)))
+
+projmat pos = perspective 0.1 100.0 (30 * pi / 180) 1.0
+          .*. lookat (pos) (pos + V3 0.0 0.0 (-1.0)) (V3 0.0 1.0 0.0)
+
+
+main = renderFrame $
+   makeFrame (Uniform "pos")
+             (Uniform "time")
+             (Texture2DSlot "diffuseTexture")
+             (fetch "objects" (Attribute "position", Attribute "uv"))

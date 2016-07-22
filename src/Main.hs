@@ -4,7 +4,10 @@ module Main where
 
 import Game (gameNetwork, renderGame)
 import Framework (hostGame)
-import Window (gameInWindow)
+import Window (gameLoop)
+import GraphicsTests
+import Linear.V2
+import qualified SDL
 
 
 -- | The width and height of the game window
@@ -25,5 +28,31 @@ timestep = 1.0 / 60.0
 
 main :: IO ()
 main = do
-  (input, tick, render) <- hostGame (width, height) gameNetwork renderGame
-  gameInWindow "Physy" timestep (width, height) input tick render
+  -- Initialise SDL
+  SDL.initializeAll
+
+  -- Construct window description
+  let windowDims = V2 (fromIntegral width) (fromIntegral height)
+  let windowDesc = SDL.defaultWindow { SDL.windowOpenGL = Just SDL.defaultOpenGL
+                                     , SDL.windowInitialSize = windowDims
+                                     }
+
+  -- Create window
+  window <- SDL.createWindow title windowDesc
+
+  -- Create opengl context
+  context <- SDL.glCreateContext window
+
+  -- Generate render function (it has some state in IO)
+  renderFun <- renderGame
+
+  -- Set up game event sinks (input, tick and render)
+  (input, tick, render) <- hostGame (width, height) gameNetwork renderFun
+
+  -- Run the game
+  gameLoop window timestep input tick render
+
+  -- Cleanup. Important for ghci use
+  SDL.glDeleteContext context
+  SDL.destroyWindow window
+  SDL.quit

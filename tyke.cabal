@@ -28,3 +28,9 @@ executable tyke
                      , text
                      , reactive-banana
                      , time
+                     , lambdacube-gl
+                     , lambdacube-ir
+                     , JuicyPixels
+                     , directory
+                     , containers
+                     , aeson
