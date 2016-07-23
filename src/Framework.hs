@@ -22,8 +22,6 @@ import Reactive.Banana
 import Reactive.Banana.Frameworks
 
 import qualified SDL.Event                       as SDL
-import qualified Graphics.Gloss                  as Gloss
-import qualified Graphics.Gloss.Rendering        as Gloss
 
 
 -- | A generic event source type alias
@@ -56,9 +54,6 @@ hostGame dimensions gameNetwork renderFun = do
   (ahEvent, hEvent) <- newAddHandler :: IO (EventSource SDL.Event)
   (ahTick, hTick) <- newAddHandler :: IO (EventSource TickType)
   (ahRender, hRender) <- newAddHandler :: IO (EventSource ())
-
-  -- Create a gloss state for the render event
-  glossState <- Gloss.initState
 
   -- Compile the event network
   network <- compile $ do

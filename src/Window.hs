@@ -22,8 +22,6 @@ import Foreign.C.Types
 import Data.Time.Clock.POSIX
 
 import qualified SDL
-import qualified Graphics.Gloss                  as Gloss
-import qualified Graphics.Gloss.Rendering        as Gloss
 
 
 -- |  Runs a game at a fixed timestep, given an input, update, and render handler

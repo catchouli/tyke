@@ -22,9 +22,6 @@ executable tyke
                      , vector
                      , bytestring
                      , OpenGL
-                     , gloss
-                     , gloss-rendering
-                     , GLUT
                      , text
                      , reactive-banana
                      , time
