@@ -12,6 +12,8 @@ module Game.Data
   )
 where
 
+import Linear.V3
+
 
 -- | The main Game data type.
 -- This contains all of the game data, preferably broken
@@ -21,5 +23,5 @@ where
 -- the behavior of the game.
 
 data Game = Game { _counter :: Float
-                 , _playerPos :: (Float, Float)
+                 , _camPos :: V3 Float
                  }

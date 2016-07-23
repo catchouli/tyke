@@ -20,11 +20,11 @@ import LambdaCube.GL
 import LambdaCube.GL.Mesh
 import Data.Aeson
 import Codec.Picture
-import Data.Array.Unboxed as UArray
 import System.Random
 import Terrain
 import Terrain.Rendering
 import Data.IORef
+import qualified Linear.V3                       as Linear
 import qualified SDL
 import qualified Data.Map                        as Map
 import qualified Data.Vector                     as V
@@ -77,20 +77,23 @@ renderGame = do
 
   -- The render handler to return
   return $ \game -> do
+    let Linear.V3 cx cy cz = _camPos game
+
     lastTicks <- readIORef lastTicksRef
     ticks <- SDL.ticks
     writeIORef lastTicksRef ticks
 
     let msPassed = ticks - lastTicks
 
-    print (1000 / fromIntegral msPassed)
+    -- crappy fps counter that only works <1000 fps
+    --print (1000 / fromIntegral msPassed)
 
     let diff = (fromIntegral (ticks - start)) / 100
     let time = (fromIntegral ticks / 2000)
 
     setScreenSize storage 800 600
     updateUniforms storage $ do
-      "pos" @= return (V3 0 0 (50) :: V3 Float)
+      "pos" @= return (V3 cx cy cz :: V3 Float)
       "diffuseTexture" @= return textureData
       "time" @= return (time :: Float)
 
