@@ -16,6 +16,8 @@ executable tyke
   hs-source-dirs:      src
   main-is:             Main.hs
   default-language:    Haskell2010
+  ghc-options:         -O2
+                       -threaded
   build-depends:       base >= 4.7 && < 5
                      , sdl2
                      , linear
@@ -31,3 +33,7 @@ executable tyke
                      , directory
                      , containers
                      , aeson
+                     , random
+                     , array
+                     , safecopy
+                     , cereal

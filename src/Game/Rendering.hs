@@ -20,6 +20,10 @@ import LambdaCube.GL
 import LambdaCube.GL.Mesh
 import Data.Aeson
 import Codec.Picture
+import Data.Array.Unboxed as UArray
+import System.Random
+import Terrain
+import Terrain.Rendering
 import qualified SDL
 import qualified Data.Map                        as Map
 import qualified Data.Vector                     as V
@@ -47,7 +51,7 @@ renderGame = do
   -- Upload mesh data
   --uploadMeshToGPU triangleA >>= addMeshToObjectArray storage "objects" []
   --uploadMeshToGPU triangleB >>= addMeshToObjectArray storage "objects" []
-  uploadMeshToGPU box >>= addMeshToObjectArray storage "objects" []
+  --uploadMeshToGPU box >>= addMeshToObjectArray storage "objects" []
   
   -- Load texture
   Right img <- readImage "data/patchouli.png"
@@ -57,9 +61,15 @@ renderGame = do
   Just pipelineDesc <- decodeStrict <$> BS.readFile "data/pipelines/3d.json"
   renderer <- allocRenderer pipelineDesc
 
+  -- Generate some random terrain
+  terrain <- randomChunk (15, 15, 15)
+  let terrainMesh = genChunkMesh terrain
+  uploadMeshToGPU terrainMesh >>= addMeshToObjectArray storage "objects" []
+
   -- Set storage
   setStorage renderer storage
 
+  -- Get start ticks
   start <- SDL.ticks
 
   -- The render handler to return
@@ -71,7 +81,7 @@ renderGame = do
 
     setScreenSize storage 800 600
     updateUniforms storage $ do
-      "pos" @= return (V3 0 0 (5) :: V3 Float)
+      "pos" @= return (V3 0 0 (55) :: V3 Float)
       "diffuseTexture" @= return textureData
       "time" @= return (time :: Float)
 

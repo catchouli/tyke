@@ -7,7 +7,7 @@ makeFrame (pos :: Vec 3 Float)
   `overlay`
       prims
     & mapPrimitives (\(p,uv) -> ((projmat pos time) *. (V4 p%x p%y p%z 1), uv))
-    & rasterizePrimitives (TriangleCtx CullBack PolygonFill NoOffset LastVertex) ((Smooth))
+    & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) ((Smooth))
     & mapFragments (\((uv)) -> ((texture2D (Sampler PointFilter MirroredRepeat texture) uv)))
     & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
