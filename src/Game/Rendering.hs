@@ -16,6 +16,7 @@ module Game.Rendering
 where
 
 import Game.Data
+import qualified LambdaCube.Linear as LC
 import LambdaCube.GL
 import LambdaCube.GL.Mesh
 import Data.Aeson
@@ -24,7 +25,10 @@ import System.Random
 import Game.Terrain
 import Game.Terrain.Rendering
 import Data.IORef
+import Data.Coerce
 import qualified Linear.V3                       as Linear
+import qualified Linear.V4                       as Linear
+import qualified Linear.Matrix                   as Linear
 import qualified SDL
 import qualified Data.Map                        as Map
 import qualified Data.Vector                     as V
@@ -42,7 +46,7 @@ renderGame = do
             "position"        @: Attribute_V3F
             "uv"              @: Attribute_V2F
         defUniforms $ do
-            "pos"             @: V3F
+            "viewMat"         @: M44F
             "time"            @: Float
             "diffuseTexture"  @: FTexture2D
 
@@ -78,6 +82,8 @@ renderGame = do
   -- The render handler to return
   return $ \game -> do
     let Linear.V3 cx cy cz = _camPos game
+    let viewMat = convertMatrix (Linear.mkTransformation (_camRot game) (_camPos game))
+    --let viewMat = convertMatrix (Linear.mkTransformationMat (Linear.identity) (_camPos game))
 
     lastTicks <- readIORef lastTicksRef
     ticks <- SDL.ticks
@@ -93,7 +99,7 @@ renderGame = do
 
     setScreenSize storage 800 600
     updateUniforms storage $ do
-      "pos" @= return (V3 cx cy cz :: V3 Float)
+      "viewMat" @= return viewMat
       "diffuseTexture" @= return textureData
       "time" @= return (time :: Float)
 
@@ -157,3 +163,24 @@ triangleB = Mesh
         ]
     , mPrimitive    = P_Triangles
     }
+
+
+-- | Convert a linear matrix to a lambacube one..
+
+convertMatrix :: Linear.M44 Float -> LC.M44F
+convertMatrix mat = let Linear.V4 (Linear.V4 a b c d)
+                                  (Linear.V4 e f g h)
+                                  (Linear.V4 i j k l)
+                                  (Linear.V4 m n o p) = mat
+                  --in V4 (V4 a b c d)
+                  --      (V4 e f g h)
+                  --      (V4 i j k l)
+                  --      (V4 m n o p)
+                  in V4 (V4 a e i m)
+                        (V4 b f j n)
+                        (V4 c g k o)
+                        (V4 d h l p)
+                  --in V4 (V4 1 0 0 0)
+                  --      (V4 0 1 0 0)
+                  --      (V4 0 0 1 5)
+                  --      (V4 0 0 0 1)

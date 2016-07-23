@@ -13,6 +13,7 @@ module Game.Data
 where
 
 import Linear.V3
+import Linear.Quaternion
 
 
 -- | The main Game data type.
@@ -24,4 +25,5 @@ import Linear.V3
 
 data Game = Game { _counter :: Float
                  , _camPos :: V3 Float
+                 , _camRot :: Quaternion Float
                  }

@@ -18,7 +18,9 @@ import Game.Simulation.Input
 import Reactive.Banana
 import Reactive.Banana.Frameworks
 import Linear.Vector
+import Linear.V2
 import Linear.V3
+import Linear.Quaternion
 
 import qualified SDL.Event          as SDL
 import qualified SDL.Input.Keyboard as SDL
@@ -36,16 +38,17 @@ gameNetwork eInput eTick = do
 
   -- Camera position and orientation
   bCamPos <- camPosition eInput eTick
+  bCamRot <- camOrientation eInput
 
   -- The overall game behavior
-  return $ Game <$> bTime <*> bCamPos
+  return $ Game <$> bTime <*> bCamPos <*> bCamRot
 
 
 -- | A behavior describing the camera position
 camPosition :: InputEvent -> TickEvent -> MomentIO (Behavior (V3 Float))
 camPosition eInput eTick = do
   let speed = 1
-  let initialPos = (V3 0 0 50 :: V3 Float)
+  let initialPos = (V3 0 0 (-50) :: V3 Float)
 
   bWDown <- keyDown eInput SDL.ScancodeW
   bSDown <- keyDown eInput SDL.ScancodeS
@@ -79,4 +82,25 @@ camVelocity speed up down left right =
       horzVel    _     _    =  0
   in V3 (horzVel left right) 0 (forwardVel up down)
 
+
 -- | A behavior describing the camera orientation
+camOrientation :: InputEvent -> MomentIO (Behavior (Quaternion Float))
+camOrientation eInput = do
+  let identity = axisAngle (V3 0 1 0) (0)
+
+  bMouseDown <- mouseButtonDown eInput SDL.ButtonLeft
+
+  let eMouseMove = whenE bMouseDown (mouseMoved eInput Delta)
+
+  let eCameraRotation = (*) <$> (cameraRotation <$> eMouseMove)
+
+  bCamOrientation <- accumB identity eCameraRotation
+  
+  return bCamOrientation
+  --return . pure $ identity
+
+
+-- | Update camera orientation quaternion based on a mouse movement
+
+cameraRotation :: V2 Float -> Quaternion Float
+cameraRotation (V2 x y) = axisAngle (V3 0 1 0) (x / 100)
