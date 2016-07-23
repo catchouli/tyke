@@ -52,6 +52,10 @@ camPosition eInput eTick = do
   bADown <- keyDown eInput SDL.ScancodeA
   bDDown <- keyDown eInput SDL.ScancodeD
 
+  bMBDown <- mouseButtonDown eInput SDL.ButtonLeft
+
+  let eMouseMoved = mouseMoved eInput Absolute
+
   let bVelocity = camVelocity speed <$> bWDown <*> bSDown <*> bADown <*> bDDown
 
   let bAddVelocity = (+) <$> bVelocity

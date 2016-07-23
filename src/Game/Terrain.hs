@@ -1,5 +1,5 @@
 -- | 
--- Module      :  Terrain
+-- Module      :  Game.Terrain
 -- Description :  The entry for the terrain rendering library
 -- Copyright   :  (c) 2016 Caitlin Wilks
 -- License     :  BSD3
@@ -7,15 +7,15 @@
 -- 
 -- 
 
-module Terrain
-  ( module Terrain.Data
-  , module Terrain.Rendering
+module Game.Terrain
+  ( module Game.Terrain.Data
+  , module Game.Terrain.Rendering
   , randomChunk
   )
 where
 
-import Terrain.Data
-import Terrain.Rendering
+import Game.Terrain.Data
+import Game.Terrain.Rendering
 import System.Random
 import qualified Data.Vector.Unboxed as VU
 

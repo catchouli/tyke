@@ -21,8 +21,8 @@ import LambdaCube.GL.Mesh
 import Data.Aeson
 import Codec.Picture
 import System.Random
-import Terrain
-import Terrain.Rendering
+import Game.Terrain
+import Game.Terrain.Rendering
 import Data.IORef
 import qualified Linear.V3                       as Linear
 import qualified SDL

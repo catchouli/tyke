@@ -1,5 +1,5 @@
 -- | 
--- Module      :  Terrain.Rendering
+-- Module      :  Game.Terrain.Rendering
 -- Description :  Responsible for generating meshes from terrain
 -- Copyright   :  (c) 2016 Caitlin Wilks
 -- License     :  BSD3
@@ -7,10 +7,10 @@
 -- 
 -- 
 
-module Terrain.Rendering
+module Game.Terrain.Rendering
 where
 
-import Terrain.Data
+import Game.Terrain.Data
 import LambdaCube.GL
 import LambdaCube.GL.Mesh
 import Data.Foldable

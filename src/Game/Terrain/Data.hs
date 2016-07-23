@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies, FlexibleInstances #-}
 
 -- | 
--- Module      :  Terrain.Data
+-- Module      :  Game.Terrain.Data
 -- Description :  Defines the data structures for the terrain
 -- Copyright   :  (c) 2016 Caitlin Wilks
 -- License     :  BSD3
@@ -9,7 +9,7 @@
 -- 
 -- 
 
-module Terrain.Data
+module Game.Terrain.Data
 where
 
 import Data.SafeCopy
