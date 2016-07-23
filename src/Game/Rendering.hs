@@ -24,6 +24,7 @@ import Data.Array.Unboxed as UArray
 import System.Random
 import Terrain
 import Terrain.Rendering
+import Data.IORef
 import qualified SDL
 import qualified Data.Map                        as Map
 import qualified Data.Vector                     as V
@@ -72,16 +73,24 @@ renderGame = do
   -- Get start ticks
   start <- SDL.ticks
 
+  lastTicksRef <- newIORef start
+
   -- The render handler to return
   return $ \game -> do
+    lastTicks <- readIORef lastTicksRef
     ticks <- SDL.ticks
+    writeIORef lastTicksRef ticks
+
+    let msPassed = ticks - lastTicks
+
+    print (1000 / fromIntegral msPassed)
 
     let diff = (fromIntegral (ticks - start)) / 100
     let time = (fromIntegral ticks / 2000)
 
     setScreenSize storage 800 600
     updateUniforms storage $ do
-      "pos" @= return (V3 0 0 (55) :: V3 Float)
+      "pos" @= return (V3 0 0 (50) :: V3 Float)
       "diffuseTexture" @= return textureData
       "time" @= return (time :: Float)
 

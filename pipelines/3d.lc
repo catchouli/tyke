@@ -11,7 +11,7 @@ makeFrame (pos :: Vec 3 Float)
     & mapFragments (\((uv)) -> ((texture2D (Sampler PointFilter MirroredRepeat texture) uv)))
     & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-projmat pos t = perspective 0.1 100.0 (30 * pi / 180) 1.0
+projmat pos t = perspective 0.1 300.0 (30 * pi / 180) 1.0
             .*. lookat (pos) (pos + V3 0.0 0.0 (-1.0)) (V3 0.0 1.0 0.0)
             .*. rotMatrixY t
 
