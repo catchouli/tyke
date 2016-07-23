@@ -5,9 +5,13 @@ module Main where
 import Game (gameNetwork, renderGame)
 import Framework (hostGame)
 import Window (gameLoop)
-import GraphicsTests
 import Linear.V2
 import qualified SDL
+
+
+-- | The window title
+
+title = "tyke"
 
 
 -- | The width and height of the game window
