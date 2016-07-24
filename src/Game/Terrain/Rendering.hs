@@ -26,6 +26,7 @@ t3_1 (a, _, _) = a -- ^ Access the first element of a 3-tuple
 t3_2 (_, b, _) = b -- ^ Access the second element of a 3-tuple
 t3_3 (_, _, c) = c -- ^ Access the third element of a 3-tuple
 
+
 -- | Generates a mesh from a terrain chunk
 
 genChunkMesh :: IChunk -> Mesh
@@ -90,11 +91,17 @@ genBlockFace (IChunk dimensions@(dx, dy, dz) blocks)
       -- block (0,0,0) would be at the origin
       addOffset (V3 a b c)
                 (V3 d e f) = V3 (a+d+0.5) (b+e+0.5) (c+f+0.5)
-      vectorIndex = posToIdx dimensions pos
-      block = VU.unsafeIndex blocks vectorIndex
+      -- The block adjacent to the current one (in dir)
+      -- If it's air, then we should generate a face so there's no holes
+      -- in the mesh
+      adjBlockPos = (x+dirx, y+diry, z+dirz)
+      adjBlockIdx = posToIdx dimensions adjBlockPos
+      adjBlock = if inRange dimensions adjBlockPos
+                    then VU.unsafeIndex blocks adjBlockIdx
+                    else False
       transformVertex = addOffset posF . cubeVertex dir
       normal = fromIntegral <$> V3 dirx diry dirz
-   in if block
+   in if not adjBlock
          then let vertices = V.fromList (map transformVertex defaultFace)
                   uvs = V.fromList $ [ V2 0 0, V2 1 0, V2 0 1
                                      , V2 0 1, V2 1 0, V2 1 1 ]
