@@ -37,3 +37,4 @@ executable tyke
                      , array
                      , safecopy
                      , cereal
+                     , lens
