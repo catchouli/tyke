@@ -19,22 +19,28 @@ executable tyke
   ghc-options:         -O2
                        -threaded
   build-depends:       base >= 4.7 && < 5
-                     , sdl2
-                     , linear
-                     , vector
-                     , bytestring
-                     , OpenGL
-                     , text
-                     , reactive-banana
+                     -- System
+                     , random
                      , time
+                     , directory
+                     , sdl2
+                     -- Maths
+                     , linear
+                     -- Text
+                     , bytestring
+                     , text
+                     -- Graphics
+                     , OpenGL
+                     , reactive-banana
                      , lambdacube-gl
                      , lambdacube-ir
+                     -- File loading
                      , JuicyPixels
-                     , directory
-                     , containers
                      , aeson
-                     , random
+                     -- Storage
                      , array
+                     , vector
+                     , containers
                      , safecopy
                      , cereal
                      , lens
