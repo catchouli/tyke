@@ -79,29 +79,41 @@ genBlockFace :: IChunk
              -> ( V.Vector (V3 Float)
                 , V.Vector (V2 Float)
                 , V.Vector (V3 Float) )
-genBlockFace (IChunk dimensions@(dx, dy, dz) blocks)
-             pos@(x, y, z) dir@(dirx, diry, dirz) =
-  let min = -0.5
-      max = 0.5
-      defaultFace = [ V2 min min, V2 max min, V2 min max,
-                      V2 min max, V2 max min, V2 max max ]
-      vertexFun (V2 x y) = case dir of (1, 0, 0)  -> V3 0.5 x y
-                                       (-1, 0, 0) -> V3 (-0.5) x (-y)
-                                       (0, 1, 0)  -> V3 (-x) 0.5 y
-                                       (0, -1, 0) -> V3 x (-0.5) y
-                                       (0, 0, 1)  -> V3 x y 0.5
-                                       (0, 0, -1) -> V3 (-x) y (-0.5)
-      addOffset (V3 x' y' z') = V3 ((fromIntegral x)+x'-(fromIntegral dx/2)) ((fromIntegral y)+y'-(fromIntegral dy/2)) ((fromIntegral z)+z'-(fromIntegral dz/2))
+genBlockFace (IChunk dimensions@(dx, dy, dz) blocks) 
+             pos@(x, y, z) dir@(dirx, diry, dirz) =  
+  let min = -0.5                                     
+      max = 0.5                                      
+      defaultFace = [ V2 min min, V2 max min, V2 min max
+                    , V2 min max, V2 max min, V2 max max ]
+      posF = fromIntegral <$> V3 x y z
+      -- A constant 0.5 offset is added or the centre of
+      -- block (0,0,0) would be at the origin
+      addOffset (V3 a b c)
+                (V3 d e f) = V3 (a+d+0.5) (b+e+0.5) (c+f+0.5)
       vectorIndex = posToIdx dimensions pos
       block = VU.unsafeIndex blocks vectorIndex
+      transformVertex = addOffset posF . cubeVertex dir
+      normal = fromIntegral <$> V3 dirx diry dirz
    in if block
-         then let vertices = V.fromList (map (addOffset . vertexFun) defaultFace)
-                  uvs = V.fromList $ [ V2 0 0, V2 1 0, V2 0 1, V2 0 1, V2 1 0, V2 1 1]
-                  normal = V3 (fromIntegral dirx) (fromIntegral diry) (fromIntegral dirz) :: V3 Float
+         then let vertices = V.fromList (map transformVertex defaultFace)
+                  uvs = V.fromList $ [ V2 0 0, V2 1 0, V2 0 1
+                                     , V2 0 1, V2 1 0, V2 1 1 ]
                   normals = V.fromList $ replicate 6 normal
-
               in (vertices, uvs, normals)
          else (V.empty, V.empty, V.empty)
+
+
+-- | Converts a 2d vertex on the face of a cube to a 3d vertex
+-- based on the direciton of the face from the centre of the cube
+
+cubeVertex :: (Int, Int, Int) -> V2 Float -> V3 Float
+cubeVertex dir (V2 x y) = case dir of (1, 0, 0)  -> V3 0.5 x y
+                                      (-1, 0, 0) -> V3 (-0.5) x (-y)
+                                      (0, 1, 0)  -> V3 (-x) 0.5 y
+                                      (0, -1, 0) -> V3 x (-0.5) y
+                                      (0, 0, 1)  -> V3 x y 0.5
+                                      (0, 0, -1) -> V3 (-x) y (-0.5)
+
 
 -- | The 6 cardinal directions
 cardinalDirections = [ (1, 0, 0), (-1, 0, 0)
