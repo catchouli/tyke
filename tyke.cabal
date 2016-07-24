@@ -31,9 +31,11 @@ executable tyke
                      , text
                      -- Graphics
                      , OpenGL
+                     , OpenGLRaw
                      , reactive-banana
                      , lambdacube-gl
                      , lambdacube-ir
+                     , FTGL
                      -- File loading
                      , JuicyPixels
                      , aeson

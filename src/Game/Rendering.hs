@@ -23,6 +23,8 @@ import Game.Terrain.Rendering
 import Data.Aeson
 import Data.IORef
 import Linear
+import Graphics.Rendering.FTGL
+import Graphics.GL.Compatibility33
 import qualified SDL
 import qualified Codec.Picture                   as Juicy
 import qualified LambdaCube.GL                   as LC
@@ -67,11 +69,17 @@ renderGame = do
   -- Set storage
   LC.setStorage renderer storage
 
+  -- Load font
+  font <- createTextureFont "data/fonts/droidsans.ttf"
+  setFontFaceSize font 22 72
+
   -- Get start ticks
   start <- SDL.ticks
 
   -- An IORef for storing the ticks value
-  lastTicksRef <- newIORef start
+  lastFPSUpdateRef <- newIORef start
+  lastFPSAvgRef <- newIORef (60 :: Int) -- ^ the initial value is a lie :)
+  lastFPSFrameCount <- newIORef (0 :: Int)
 
   -- The render handler to return
   return $ \game -> do
@@ -81,12 +89,21 @@ renderGame = do
     let viewMat = convertMatrix $ (mRotation !*! mTranslation)
 
     -- Update timer
-    lastTicks <- readIORef lastTicksRef
     ticks <- SDL.ticks
-    writeIORef lastTicksRef ticks
-    let msPassed = ticks - lastTicks
-    -- crappy fps counter that only works <1000 fps
-    --print (1000 / fromIntegral msPassed)
+
+    -- Update fps counter
+    modifyIORef lastFPSFrameCount (+1)
+    lastFPSUpdate <- readIORef lastFPSUpdateRef
+
+    if (ticks - lastFPSUpdate) >= 1000
+       then do avgFps <- readIORef lastFPSFrameCount
+               writeIORef lastFPSAvgRef avgFps
+               writeIORef lastFPSUpdateRef ticks
+               writeIORef lastFPSFrameCount 0
+       else return ()
+
+    -- Read average fps
+    fps <- readIORef lastFPSAvgRef
 
     -- Calculate time for unions
     let diff = (fromIntegral (ticks - start)) / 100
@@ -101,6 +118,34 @@ renderGame = do
 
     -- Render a frame
     LC.renderFrame renderer
+
+    -- Render debug tex
+    renderStats font fps
+
+-- | Render stats
+
+renderStats :: Font -> Int -> IO ()
+renderStats font fps = do
+  -- Clean up opengl state (after lc render)
+
+  glUseProgram 0
+  glColor3f 1 1 1
+  glLoadIdentity
+  glOrtho 0 800 0 600 0 10
+
+  -- Disable depth test so we can draw on top of lc render
+  glDisable GL_DEPTH_TEST
+
+  -- Draw text
+  glPushMatrix
+
+  glTranslatef 50 50 0
+  renderFont font ("FPS: " ++ show fps ++ "hz") All
+  
+  glPopMatrix
+
+  -- Restore depth test it's probably important
+  glEnable GL_DEPTH_TEST
 
 
 -- | Convert a linear matrix to a lambacube one..
