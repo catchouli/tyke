@@ -56,7 +56,9 @@ genChunkMesh chunk@(IChunk dimensions@(dx, dy, dz) blocks) =
 
 genBlockMesh :: IChunk
              -> (Int, Int, Int)
-             -> (V.Vector (V3 Float), V.Vector (V2 Float), V.Vector (V3 Float))
+             -> ( V.Vector (V3 Float)
+                , V.Vector (V2 Float)
+                , V.Vector (V3 Float) )
 genBlockMesh chunk@(IChunk dimensions blocks) idx =
   let vectorIndex = posToIdx dimensions idx
       block = VU.unsafeIndex blocks vectorIndex
@@ -74,13 +76,15 @@ genBlockMesh chunk@(IChunk dimensions blocks) idx =
 genBlockFace :: IChunk
              -> (Int, Int, Int)
              -> (Int, Int, Int)
-             -> (V.Vector (V3 Float), V.Vector (V2 Float), V.Vector (V3 Float))
-genBlockFace (IChunk dimensions@(dx, dy, dz) blocks) pos@(x, y, z) dir@(dirx, diry, dirz) =
-  let defaultFace :: [ V2 Float ]
-      min = -0.5
+             -> ( V.Vector (V3 Float)
+                , V.Vector (V2 Float)
+                , V.Vector (V3 Float) )
+genBlockFace (IChunk dimensions@(dx, dy, dz) blocks)
+             pos@(x, y, z) dir@(dirx, diry, dirz) =
+  let min = -0.5
       max = 0.5
-      defaultFace = reverse [ V2 min min, V2 max min, V2 min max,
-                              V2 min max, V2 max min, V2 max max ]
+      defaultFace = [ V2 min min, V2 max min, V2 min max,
+                      V2 min max, V2 max min, V2 max max ]
       vertexFun (V2 x y) = case dir of (1, 0, 0)  -> V3 0.5 x y
                                        (-1, 0, 0) -> V3 (-0.5) x (-y)
                                        (0, 1, 0)  -> V3 (-x) 0.5 y

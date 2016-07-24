@@ -10,7 +10,7 @@ makeFrame (viewMat  :: Mat 4 4 Float)
          `overlay`
              prims
            & mapPrimitives (vertFun projMat)
-           & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) (Smooth, Smooth)
+           & rasterizePrimitives (TriangleCtx CullBack PolygonFill NoOffset LastVertex) (Smooth, Smooth)
            & mapFragments (fragFun texture)
            & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
