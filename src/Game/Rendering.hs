@@ -65,7 +65,8 @@ renderGame = do
   -- Generate some random terrain
   terrain <- randomChunk (15, 15, 15)
   let terrainMesh = genChunkMesh terrain
-  LC.uploadMeshToGPU terrainMesh >>= LC.addMeshToObjectArray storage "objects" []
+  LC.uploadMeshToGPU terrainMesh >>=
+    LC.addMeshToObjectArray storage "objects" []
 
   -- Set storage
   LC.setStorage renderer storage
@@ -85,8 +86,8 @@ renderGame = do
   -- The render handler to return
   return $ \game -> do
     -- Calculate view matrix
-    let mTranslation = identity & translation .~ (-(_camPos game)) :: M44 Float
-    let mRotation = m33_to_m44 . fromQuaternion $ _camRot game :: M44 Float
+    let mTranslation = identity & translation .~ (-(_camPos game))
+    let mRotation = m33_to_m44 . fromQuaternion $ _camRot game
     let viewMat = convertMatrix $ (mRotation !*! mTranslation)
 
     -- Update timer
