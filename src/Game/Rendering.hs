@@ -50,11 +50,6 @@ renderGame = do
 
   -- Allocate storage
   storage <- LC.allocStorage inputSchema
-
-  -- Upload mesh data
-  --uploadMeshToGPU triangleA >>= addMeshToObjectArray storage "objects" []
-  --uploadMeshToGPU triangleB >>= addMeshToObjectArray storage "objects" []
-  --uploadMeshToGPU box >>= addMeshToObjectArray storage "objects" []
   
   -- Load texture
   Right img <- Juicy.readImage "data/patchouli.png"
@@ -80,31 +75,31 @@ renderGame = do
 
   -- The render handler to return
   return $ \game -> do
-    --let Linear.V3 cx cy cz = _camPos game
-    --let viewMat = convertMatrix (Linear.mkTransformation (_camRot game) (_camPos game))
-    --let viewMat = convertMatrix (Linear.mkTransformationMat (Linear.identity) (_camPos game))
+    -- Calculate view matrix
     let mTranslation = identity & translation .~ (-(_camPos game)) :: M44 Float
     let mRotation = m33_to_m44 . fromQuaternion $ _camRot game :: M44 Float
     let viewMat = convertMatrix $ (mRotation !*! mTranslation)
 
+    -- Update timer
     lastTicks <- readIORef lastTicksRef
     ticks <- SDL.ticks
     writeIORef lastTicksRef ticks
-
     let msPassed = ticks - lastTicks
-
     -- crappy fps counter that only works <1000 fps
     --print (1000 / fromIntegral msPassed)
 
+    -- Calculate time for unions
     let diff = (fromIntegral (ticks - start)) / 100
-    let time = (fromIntegral ticks / 2000)
+    let time = (fromIntegral ticks / 1000)
 
+    -- Update uniforms
     LC.setScreenSize storage 800 600
     LC.updateUniforms storage $ do
       "viewMat"        LC.@= return viewMat
       "diffuseTexture" LC.@= return textureData
       "time"           LC.@= return (time :: Float)
 
+    -- Render a frame
     LC.renderFrame renderer
 
 

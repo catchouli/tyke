@@ -97,7 +97,6 @@ camOrientation eInput = do
   bCamOrientation <- accumB identity eCameraRotation
   
   return bCamOrientation
-  --return . pure $ identity
 
 
 -- | Update camera orientation quaternion based on a mouse movement
