@@ -48,7 +48,7 @@ camPosition :: InputEvent
             -> MomentIO (Behavior (V3 Float))
 camPosition eInput eTick bCamRot = do
   let speed = 0.1
-  let initialPos = (V3 0 0 (10) :: V3 Float)
+  let initialPos = (V3 20 20 100 :: V3 Float)
 
   bWDown <- keyDown eInput SDL.ScancodeW
   bSDown <- keyDown eInput SDL.ScancodeS
