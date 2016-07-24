@@ -86,20 +86,18 @@ camVelocity speed camRot up down left right =
 -- | A behavior describing the camera orientation
 camOrientation :: InputEvent -> MomentIO (Behavior (Quaternion Float))
 camOrientation eInput = do
-  let identity = axisAngle (V3 0 1 0) (0)
-
   bMouseDown <- mouseButtonDown eInput SDL.ButtonLeft
 
   let eMouseMove = whenE bMouseDown (mouseMoved eInput Delta)
 
-  let eCameraRotation = (*) <$> (cameraRotation <$> eMouseMove)
+  bCameraRotationComponents <- accumB (V2 0 0 :: V2 Float) ((+) <$> eMouseMove)
 
-  bCamOrientation <- accumB identity eCameraRotation
-  
-  return bCamOrientation
+  return $ cameraRotation <$> bCameraRotationComponents
 
 
 -- | Update camera orientation quaternion based on a mouse movement
+-- It basically converts from eulers to axisAngle, and could be abstracted
 
 cameraRotation :: V2 Float -> Quaternion Float
-cameraRotation (V2 x y) = axisAngle (V3 0 1 0) (x / 100)
+cameraRotation (V2 yaw pitch) = axisAngle (V3 1 0 0) (pitch / 300)
+                              * axisAngle (V3 0 1 0) (yaw / 300)
