@@ -55,7 +55,7 @@ renderGame = do
   storage <- LC.allocStorage inputSchema
   
   -- Load texture
-  Right img <- Juicy.readImage "data/patchouli.png"
+  Right img <- Juicy.readImage "data/grass.png"
   textureData <- LC.uploadTexture2DToGPU img
 
   -- Load pipeline and generate renderer
@@ -63,7 +63,7 @@ renderGame = do
   renderer <- LC.allocRenderer pipelineDesc
 
   -- Generate some random terrain
-  terrain <- randomChunk (2, 2, 2)
+  terrain <- randomChunk (25, 5, 25)
   let terrainMesh = genChunkMesh terrain
   LC.uploadMeshToGPU terrainMesh >>=
     LC.addMeshToObjectArray storage "objects" []

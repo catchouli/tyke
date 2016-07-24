@@ -120,7 +120,7 @@ cubeVertex dir (V2 x y) = case dir of ( 1,  0,  0) -> V3 0.5 y (-x)
                                       ( 0,  0,  1) -> V3 x y 0.5
                                       ( 0,  0, -1) -> V3 (-x) y (-0.5)
 
--- | The UVs on a cubes face with 6 vertices
+-- | Convert from a 
 
 cubeFaceUvs :: [V2 Float]
 cubeFaceUvs = [ V2 0 1, V2 1 1, V2 0 0, V2 0 0, V2 1 1, V2 1 0 ]
@@ -135,7 +135,7 @@ cardinalDirections = [ (1, 0, 0), (-1, 0, 0)
 -- | Whether a set of coordinates is in range
 inRange :: (Int, Int, Int) -> (Int, Int, Int) -> Bool
 inRange (dx, dy, dz) (x, y, z) = x >= 0 && x < dx
-                              && y >= 0 && y < dx
+                              && y >= 0 && y < dy
                               && z >= 0 && z < dz
 
 
