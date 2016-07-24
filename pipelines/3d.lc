@@ -20,8 +20,8 @@ vertFun projMat (p, uv, n) = let vertexPos = projMat *. (V4 p%x p%y p%z 1)
 
 -- Fragment function
 fragFun texture (uv, n) = let sampler = Sampler PointFilter MirroredRepeat texture
-                              ambient = V4 0.5 0.5 0.5 1.0
-                              intensity = 0.5 * (dot n (normalize $ V3 1 0 1))
+                              ambient = V4 1.0 1.0 1.0 1.0
+                              intensity = 0.0 * (dot n (normalize $ V3 1 0 1))
                               diffuse = V4 intensity intensity intensity 1 
                               lightContribution = ambient + diffuse
                               textureContribution = texture2D sampler uv

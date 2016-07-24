@@ -103,8 +103,7 @@ genBlockFace (IChunk dimensions@(dx, dy, dz) blocks)
       normal = fromIntegral <$> V3 dirx diry dirz
    in if not adjBlock
          then let vertices = V.fromList (map transformVertex defaultFace)
-                  uvs = V.fromList $ [ V2 0 0, V2 1 0, V2 0 1
-                                     , V2 0 1, V2 1 0, V2 1 1 ]
+                  uvs = V.fromList $ cubeFaceUvs
                   normals = V.fromList $ replicate 6 normal
               in (vertices, uvs, normals)
          else (V.empty, V.empty, V.empty)
@@ -114,12 +113,17 @@ genBlockFace (IChunk dimensions@(dx, dy, dz) blocks)
 -- based on the direciton of the face from the centre of the cube
 
 cubeVertex :: (Int, Int, Int) -> V2 Float -> V3 Float
-cubeVertex dir (V2 x y) = case dir of (1, 0, 0)  -> V3 0.5 x y
-                                      (-1, 0, 0) -> V3 (-0.5) x (-y)
-                                      (0, 1, 0)  -> V3 (-x) 0.5 y
-                                      (0, -1, 0) -> V3 x (-0.5) y
-                                      (0, 0, 1)  -> V3 x y 0.5
-                                      (0, 0, -1) -> V3 (-x) y (-0.5)
+cubeVertex dir (V2 x y) = case dir of ( 1,  0,  0) -> V3 0.5 y (-x)
+                                      (-1,  0,  0) -> V3 (-0.5) y x
+                                      ( 0,  1,  0) -> V3 (-x) 0.5 y
+                                      ( 0, -1,  0) -> V3 x (-0.5) y
+                                      ( 0,  0,  1) -> V3 x y 0.5
+                                      ( 0,  0, -1) -> V3 (-x) y (-0.5)
+
+-- | The UVs on a cubes face with 6 vertices
+
+cubeFaceUvs :: [V2 Float]
+cubeFaceUvs = [ V2 0 1, V2 1 1, V2 0 0, V2 0 0, V2 1 1, V2 1 0 ]
 
 
 -- | The 6 cardinal directions

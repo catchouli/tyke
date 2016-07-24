@@ -55,7 +55,7 @@ renderGame = do
   storage <- LC.allocStorage inputSchema
   
   -- Load texture
-  Right img <- Juicy.readImage "data/grass.png"
+  Right img <- Juicy.readImage "data/patchouli.png"
   textureData <- LC.uploadTexture2DToGPU img
 
   -- Load pipeline and generate renderer
