@@ -45,6 +45,7 @@ renderGame = do
         LC.defObjectArray "objects" LC.Triangles $ do
             "position"        LC.@: LC.Attribute_V3F
             "uv"              LC.@: LC.Attribute_V2F
+            "normal"          LC.@: LC.Attribute_V3F
         LC.defUniforms $ do
             "viewMat"         LC.@: LC.M44F
             "time"            LC.@: LC.Float

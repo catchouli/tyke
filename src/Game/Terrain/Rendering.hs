@@ -20,6 +20,12 @@ import qualified Data.Vector                     as V
 import qualified Data.Vector.Unboxed             as VU
 
 
+-- Tuple accessors
+
+t3_1 (a, _, _) = a -- ^ Access the first element of a 3-tuple
+t3_2 (_, b, _) = b -- ^ Access the second element of a 3-tuple
+t3_3 (_, _, c) = c -- ^ Access the third element of a 3-tuple
+
 -- | Generates a mesh from a terrain chunk
 
 genChunkMesh :: IChunk -> Mesh
@@ -29,18 +35,18 @@ genChunkMesh chunk@(IChunk dimensions@(dx, dy, dz) blocks) =
     -- Not!! the 3d rendering kind of indices
     indices = [(x,y,z) | x <- [0..dx-1], y <- [0..dy-1], z <- [0..dz-1]]
     -- Fold over block indices and generate faces for each block
-    genBlock = genBlockMesh chunk
-    --vertices = foldl' (genBlockMesh chunk) (V.fromList []) indices
-    vertices = V.concat . map genBlock $ indices
-    -- Get the number of faces (sketchy if I change the format)
-    faceCount = trace (show $ V.length vertices) $ V.length vertices `div` 6
-    -- Generate uvs (just simiple box uvs.. im not fussed the order right now)
-    uvs = concat . replicate faceCount $ [ V2 0 0, V2 1 0, V2 0 1
-                                         , V2 0 1, V2 1 0, V2 1 1 ]
+    blockMeshes = map (genBlockMesh chunk) indices
+    -- Get vertices and concatenate them into a single vector
+    vertices = V.concat . map t3_1 $ blockMeshes
+    -- Get uvs and concatenate them into a single vector
+    uvs = V.concat . map t3_2 $ blockMeshes
+    -- Get normals and concatenate them into a single vector
+    normals = V.concat . map t3_3 $ blockMeshes
   in Mesh
       { mAttributes   = Map.fromList
-            [ ("position",  A_V3F vertices )
-            , ("uv",        A_V2F $ V.fromList uvs )
+            [ ( "position",  A_V3F vertices )
+            , ( "uv",        A_V2F uvs )
+            , ( "normal",    A_V3F normals )
             ]
       , mPrimitive = P_Triangles
       }
@@ -50,14 +56,17 @@ genChunkMesh chunk@(IChunk dimensions@(dx, dy, dz) blocks) =
 
 genBlockMesh :: IChunk
              -> (Int, Int, Int)
-             -> V.Vector (V3 Float)
+             -> (V.Vector (V3 Float), V.Vector (V2 Float), V.Vector (V3 Float))
 genBlockMesh chunk@(IChunk dimensions blocks) idx =
   let vectorIndex = posToIdx dimensions idx
       block = VU.unsafeIndex blocks vectorIndex
       genFace = genBlockFace chunk idx
+      faces = map genFace cardinalDirections
   in if block
-        then V.concat (map genFace cardinalDirections)
-        else V.empty
+        then (V.concat . map t3_1 $ faces,
+              V.concat . map t3_2 $ faces,
+              V.concat . map t3_3 $ faces)
+        else (V.empty, V.empty, V.empty)
 
 
 -- | Generates a face for a block, if applicable
@@ -65,7 +74,7 @@ genBlockMesh chunk@(IChunk dimensions blocks) idx =
 genBlockFace :: IChunk
              -> (Int, Int, Int)
              -> (Int, Int, Int)
-             -> V.Vector (V3 Float)
+             -> (V.Vector (V3 Float), V.Vector (V2 Float), V.Vector (V3 Float))
 genBlockFace (IChunk dimensions@(dx, dy, dz) blocks) pos@(x, y, z) dir@(dirx, diry, dirz) =
   let defaultFace :: [ V2 Float ]
       min = -0.5
@@ -82,8 +91,13 @@ genBlockFace (IChunk dimensions@(dx, dy, dz) blocks) pos@(x, y, z) dir@(dirx, di
       vectorIndex = posToIdx dimensions pos
       block = VU.unsafeIndex blocks vectorIndex
    in if block
-         then V.fromList (map (addOffset . vertexFun) defaultFace)
-         else V.empty
+         then let vertices = V.fromList (map (addOffset . vertexFun) defaultFace)
+                  uvs = V.fromList $ [ V2 0 0, V2 1 0, V2 0 1, V2 0 1, V2 1 0, V2 1 1]
+                  normal = V3 (fromIntegral dirx) (fromIntegral diry) (fromIntegral dirz) :: V3 Float
+                  normals = V.fromList $ replicate 6 normal
+
+              in (vertices, uvs, normals)
+         else (V.empty, V.empty, V.empty)
 
 -- | The 6 cardinal directions
 cardinalDirections = [ (1, 0, 0), (-1, 0, 0)

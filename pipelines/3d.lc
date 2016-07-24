@@ -1,21 +1,41 @@
+-- Generate frame
 makeFrame (viewMat  :: Mat 4 4 Float)
-          (time :: Float)
           (texture :: Texture)
-          (prims :: PrimitiveStream Triangle (Vec 3 Float, Vec 2 Float))
+          (prims :: PrimitiveStream Triangle ( Vec 3 Float
+                                             , Vec 2 Float
+                                             , Vec 3 Float
+                                             ))
+    = let projMat = calcProjection viewMat
+      in imageFrame (emptyDepthImage 1, emptyColorImage navy)
+         `overlay`
+             prims
+           & mapPrimitives (vertFun projMat)
+           & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) (Smooth, Smooth)
+           & mapFragments (fragFun texture)
+           & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
-    = imageFrame (emptyDepthImage 1, emptyColorImage navy)
-  `overlay`
-      prims
-    & mapPrimitives (\(p,uv) -> ((projmat viewMat time) *. (V4 p%x p%y p%z 1), uv))
-    & rasterizePrimitives (TriangleCtx CullNone PolygonFill NoOffset LastVertex) ((Smooth))
-    & mapFragments (\((uv)) -> ((texture2D (Sampler PointFilter MirroredRepeat texture) uv)))
-    & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+-- Vertex function
+vertFun projMat (p, uv, n) = let vertexPos = projMat *. (V4 p%x p%y p%z 1)
+                             in (vertexPos, uv, n)
 
-projmat viewMat t = perspective 0.1 300.0 (90  * pi / 180) 1.0
-                .*. viewMat
+-- Fragment function
+fragFun texture (uv, n) = let sampler = Sampler PointFilter MirroredRepeat texture
+                              ambient = V4 0.5 0.5 0.5 1.0
+                              intensity = 0.5 * (dot n (normalize $ V3 1 0 1))
+                              diffuse = V4 intensity intensity intensity 1 
+                              lightContribution = ambient + diffuse
+                              textureContribution = texture2D sampler uv
+                          in ((lightContribution * textureContribution))
 
+-- Build the projection matrix given a view matrix
+calcProjection viewMat = perspective 0.1 300.0 (90  * pi / 180) 1.0
+                         .*. viewMat
+
+-- Render our frame
 main = renderFrame $
    makeFrame (Uniform "viewMat")
-             (Uniform "time")
              (Texture2DSlot "diffuseTexture")
-             (fetch "objects" (Attribute "position", Attribute "uv"))
+             (fetch "objects" ( Attribute "position"
+                              , Attribute "uv"
+                              , Attribute "normal"
+                              ))
