@@ -47,10 +47,9 @@ renderGame = do
             "uv"              LC.@: LC.Attribute_V2F
             "normal"          LC.@: LC.Attribute_V3F
         LC.defUniforms $ do
-            "viewMat"         LC.@: LC.M44F
+            "projection"      LC.@: LC.M44F
             "time"            LC.@: LC.Float
             "diffuseTexture"  LC.@: LC.FTexture2D
-            "camPos"          LC.@: LC.V3F
 
   -- Allocate storage
   storage <- LC.allocStorage inputSchema
@@ -64,7 +63,7 @@ renderGame = do
   renderer <- LC.allocRenderer pipelineDesc
 
   -- Generate some random terrain
-  terrain <- randomChunk (100, 5, 100)
+  terrain <- randomChunk (15, 15, 15)
   let terrainMesh = genChunkMesh terrain
   LC.uploadMeshToGPU terrainMesh >>=
     LC.addMeshToObjectArray storage "objects" []
@@ -86,18 +85,8 @@ renderGame = do
 
   -- The render handler to return
   return $ \game -> do
-    -- Calculate view matrix
-    let (V3 x y z) = _camPos game
-    let mTranslation = identity & translation .~ (-(_camPos game))
-    let mRotation = m33_to_m44 . fromQuaternion $ _camRot game
-    let viewMat = convertMatrix $ (mRotation !*! mTranslation)
-
-    let rotation = m33_to_m44 . fromQuaternion $
-                      (axisAngle (V3 1 0 0) (35.264) :: Quaternion Float) * (axisAngle (V3 0 1 0) (45) :: Quaternion Float)
-    let projection = ortho (-10) 10 (10) (-10) 0 (-100) !*! scaled (V4 (0.6) (0.6) (0.6) 1) !*! rotation !*! mTranslation
-    --let projection = mTranslation !*! rotation !*! ortho (-10) 10 (-10) 10 (-10) 10
-
-    let viewMat2 = convertMatrix $ projection
+    -- Convert view matrix to LC matrix
+    let projection = convertMatrix $ _camViewMat game
 
     -- Update timer
     ticks <- SDL.ticks
@@ -123,10 +112,9 @@ renderGame = do
     -- Update uniforms
     LC.setScreenSize storage 800 600
     LC.updateUniforms storage $ do
-      "viewMat"        LC.@= return viewMat
+      "projection"     LC.@= return projection
       "diffuseTexture" LC.@= return textureData
       "time"           LC.@= return (time :: Float)
-      "camPos"         LC.@= return (LC.V3 x y z)
 
     -- Render a frame
     LC.renderFrame renderer

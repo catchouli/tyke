@@ -12,8 +12,7 @@ module Game.Data
   )
 where
 
-import Linear.V3
-import Linear.Quaternion
+import Linear
 
 
 -- | The main Game data type.
@@ -23,7 +22,5 @@ import Linear.Quaternion
 -- reactive-banana behavior, the network of which comprises
 -- the behavior of the game.
 
-data Game = Game { _counter :: Float
-                 , _camPos :: V3 Float
-                 , _camRot :: Quaternion Float
+data Game = Game { _camViewMat :: M44 Float
                  }

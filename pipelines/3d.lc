@@ -1,23 +1,23 @@
 -- Generate frame
-makeFrame (viewMat  :: Mat 4 4 Float)
-          (camPos :: Vec 3 Float)
+makeFrame (projection :: Mat 4 4 Float)
           (texture :: Texture)
           (prims :: PrimitiveStream Triangle ( Vec 3 Float
                                              , Vec 2 Float
                                              , Vec 3 Float
                                              ))
-    = let projMat = calcProjection viewMat camPos
-      in imageFrame (emptyDepthImage 1, emptyColorImage navy)
+     = imageFrame (emptyDepthImage 1, emptyColorImage navy)
          `overlay`
              prims
-           & mapPrimitives (vertFun projMat)
+           & mapPrimitives (vertFun projection)
            & rasterizePrimitives (TriangleCtx CullBack PolygonFill NoOffset LastVertex) (Smooth, Smooth)
            & mapFragments (fragFun texture)
            & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
 
+
 -- Vertex function
 vertFun projMat (p, uv, n) = let vertexPos = projMat *. (V4 p%x p%y p%z 1)
                              in (vertexPos, uv, n)
+
 
 -- Fragment function
 fragFun texture (uv, n) = let sampler = Sampler PointFilter MirroredRepeat texture
@@ -28,15 +28,10 @@ fragFun texture (uv, n) = let sampler = Sampler PointFilter MirroredRepeat textu
                               textureContribution = texture2D sampler uv
                           in ((lightContribution * textureContribution))
 
--- Build the projection matrix given a view matrix
-calcProjection viewMat camPos = perspective 0.1 300.0 (90  * pi / 180) 1.0
-                            .*. viewMat
---calcProjection viewMat camPos = viewMat
 
 -- Render our frame
 main = renderFrame $
-   makeFrame (Uniform "viewMat")
-             (Uniform "camPos")
+   makeFrame (Uniform "projection")
              (Texture2DSlot "diffuseTexture")
              (fetch "objects" ( Attribute "position"
                               , Attribute "uv"
