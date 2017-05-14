@@ -63,20 +63,18 @@ camPosition :: InputEvent
 camPosition eInput eTick initialPos bCamRot = do
   let speed = 0.1
 
-  bWDown <- keyDown eInput SDL.ScancodeW
-  bSDown <- keyDown eInput SDL.ScancodeS
-  bADown <- keyDown eInput SDL.ScancodeA
-  bDDown <- keyDown eInput SDL.ScancodeD
-  bQDown <- keyDown eInput SDL.ScancodeQ
-  bEDown <- keyDown eInput SDL.ScancodeE
-
-  bMBDown <- mouseButtonDown eInput SDL.ButtonLeft
+  forward <- keyDown eInput SDL.ScancodeW
+  back <- keyDown eInput SDL.ScancodeS
+  left <- keyDown eInput SDL.ScancodeA
+  right <- keyDown eInput SDL.ScancodeD
+  down <- keyDown eInput SDL.ScancodeQ
+  up <- keyDown eInput SDL.ScancodeE
 
   let eMouseMoved = mouseMoved eInput Absolute
 
-  let bVelocity = (camVelocity speed <$> bCamRot <*> bWDown
-                                     <*> bSDown  <*> bADown <*> bDDown
-                                     <*> bQDown  <*> bEDown)
+  let bVelocity = (camVelocity speed <$> bCamRot <*> forward
+                                     <*> back <*> left <*> right
+                                     <*> down <*> up)
 
   let bAddVelocity = (+) <$> bVelocity
   let eAddVelocity = bAddVelocity <@ eTick
