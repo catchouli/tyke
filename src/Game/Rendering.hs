@@ -29,6 +29,7 @@ import qualified SDL
 import qualified Codec.Picture                   as Juicy
 import qualified LambdaCube.GL                   as LC
 import qualified LambdaCube.GL.Mesh              as LC
+import qualified LambdaCube.GL.Type              as LC
 import qualified LambdaCube.Linear               as LC
 import qualified Data.Map                        as Map
 import qualified Data.Vector                     as V
@@ -59,11 +60,11 @@ renderGame = do
   textureData <- LC.uploadTexture2DToGPU img
 
   -- Load pipeline and generate renderer
-  Just pipelineDesc <- decodeStrict <$> BS.readFile "data/pipelines/3d.json"
+  Just pipelineDesc <- decodeStrict <$> BS.readFile "data/pipelines/blocks.json"
   renderer <- LC.allocRenderer pipelineDesc
 
   -- Generate some random terrain
-  terrain <- randomChunk (15, 15, 15)
+  terrain <- randomChunk (50, 5, 50)
   let terrainMesh = genChunkMesh terrain
   LC.uploadMeshToGPU terrainMesh >>=
     LC.addMeshToObjectArray storage "objects" []

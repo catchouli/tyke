@@ -7,6 +7,8 @@
 -- 
 -- 
 
+{-# LANGUAGE LambdaCase #-}
+
 module Window
   ( gameLoop
   )
@@ -16,26 +18,30 @@ import Framework
 
 import Data.List (foldl')
 import Linear (V2(..), V4(..))
-import Control.Monad (unless, replicateM_)
+import Control.Monad (unless, replicateM_, void)
 import Data.Text (Text)
 import Foreign.C.Types
 import Data.Time.Clock.POSIX
+import Control.Concurrent.MVar
+import Control.Monad (forM_)
 
 import qualified SDL
 
 
 -- |  Runs a game at a fixed timestep, given an input, update, and render handler
 
-gameLoop :: Fractional a
-             => SDL.Window
-             -> TickType
-             -> InputHandler
-             -> TickHandler
-             -> RenderHandler
-             -> IO ()
+gameLoop :: SDL.Window
+         -> TickType
+         -> InputHandler
+         -> TickHandler
+         -> RenderHandler
+         -> IO ()
 gameLoop window fTimestep inputHandler tickHandler renderHandler = do
 
   let timestep = realToFrac fTimestep
+
+  quit <- newMVar False
+  let exit = void $ swapMVar quit True
 
   -- Main loop
   let loop lastTime = do 
@@ -52,7 +58,14 @@ gameLoop window fTimestep inputHandler tickHandler renderHandler = do
         events <- SDL.pollEvents
 
         -- Check for a quit event
-        let quit = any (== SDL.QuitEvent) . map SDL.eventPayload $ events
+        forM_ (map SDL.eventPayload events)
+          (\case
+             SDL.QuitEvent       -> exit
+             SDL.KeyboardEvent d -> case (SDL.keysymScancode . SDL.keyboardEventKeysym) d of
+                                         SDL.ScancodeEscape -> exit
+                                         _                  -> return ()
+             _                   -> return ()
+          )
 
         -- Send events to the input event sink
         mapM_ inputHandler events
@@ -67,6 +80,7 @@ gameLoop window fTimestep inputHandler tickHandler renderHandler = do
         SDL.glSwapWindow window
 
         -- Loop, or quit if requested
-        unless quit (loop newLastTime)
+        quitting <- readMVar quit
+        unless quitting (loop newLastTime)
 
     in getPOSIXTime >>= loop

@@ -1,0 +1,39 @@
+-- Generate frame
+makeFrame (projection :: Mat 4 4 Float)
+          (texture :: Texture)
+          (prims :: PrimitiveStream Triangle ( Vec 3 Float
+                                             , Vec 2 Float
+                                             , Vec 3 Float
+                                             ))
+     = imageFrame (emptyDepthImage 1, emptyColorImage navy)
+         `overlay`
+             prims
+           & mapPrimitives (vertFun projection)
+           & rasterizePrimitives (TriangleCtx CullBack PolygonFill NoOffset LastVertex) (Smooth, Smooth)
+           & mapFragments (fragFun texture)
+           & accumulateWith (DepthOp Less True, ColorOp NoBlending (V4 True True True True))
+
+
+-- Vertex function
+vertFun projMat (p, uv, n) = let vertexPos = projMat *. (V4 p%x p%y p%z 1)
+                             in (vertexPos, uv, n)
+
+
+-- Fragment function
+fragFun texture (uv, n) = let sampler = Sampler PointFilter MirroredRepeat texture
+                              ambient = V4 0.1 0.1 0.1 1.0
+                              intensity = 0.9 * (dot n (normalize $ V3 (-0.5) 1 1))
+                              diffuse = V4 intensity intensity intensity 1 
+                              lightContribution = ambient + diffuse
+                              textureContribution = texture2D sampler uv
+                          in ((lightContribution * textureContribution))
+
+
+-- Render our frame
+main = renderFrame $
+   makeFrame (Uniform "projection")
+             (Texture2DSlot "diffuseTexture")
+             (fetch "objects" ( Attribute "position"
+                              , Attribute "uv"
+                              , Attribute "normal"
+                              ))

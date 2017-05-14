@@ -18,6 +18,7 @@ import Control.Lens
 import Game.Data
 import Game.Simulation.Input
 import Game.Simulation.Camera.FPSCamera
+import Game.Simulation.Camera.IsometricCamera
 import Reactive.Banana
 import Reactive.Banana.Frameworks
 
@@ -36,7 +37,8 @@ gameNetwork eInput eTick = do
   bTime <- stepper 0 eTime
 
   -- FPS camera
-  bViewMat <- fpsCamera eInput eTick (V3 20 15 20) (V2 (-45) 0) 90 1 0.1
+  --bViewMat <- fpsCamera eInput eTick (V3 20 15 20) (V2 (-45) 0) 1 1 0.1
+  bViewMat <- isometricCamera eInput eTick
 
   -- The overall game behavior
   return $ Game <$> bViewMat
