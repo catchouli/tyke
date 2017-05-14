@@ -24,6 +24,7 @@ import Foreign.C.Types
 import Data.Time.Clock.POSIX
 import Control.Concurrent.MVar
 import Control.Monad (forM_)
+import ImGui
 
 import qualified SDL
 
@@ -75,6 +76,8 @@ gameLoop window fTimestep inputHandler tickHandler renderHandler = do
 
         -- Render the game
         renderHandler
+
+        renderGui
 
         -- Swap buffer
         SDL.glSwapWindow window
