@@ -1,0 +1,21 @@
+name:                imgui
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/Catchouli/imgui#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Caitlin Wilks
+maintainer:          mitasuki@gmail.com
+copyright:           Caitlin Wilks 2017
+category:            unknown
+build-type:          Simple
+cabal-version:       >=1.10
+extra-source-files:  README.md
+
+library
+  hs-source-dirs:      src
+  c-sources:           src/ImGui.c
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , inline-c

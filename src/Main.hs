@@ -7,6 +7,7 @@ import Framework (hostGame)
 import Window (gameLoop)
 import Linear.V2
 import qualified SDL
+import ImGui
 
 
 -- | The window title
@@ -32,6 +33,8 @@ timestep = 1.0 / 60.0
 
 main :: IO ()
 main = do
+  printThing
+
   -- Initialise SDL
   SDL.initializeAll
 
