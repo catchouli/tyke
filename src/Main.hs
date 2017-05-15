@@ -7,7 +7,7 @@ import Framework (hostGame)
 import Window (gameLoop)
 import Linear.V2
 import qualified SDL
-import ImGui
+--import ImGui
 
 
 -- | The window title
@@ -33,7 +33,7 @@ timestep = 1.0 / 60.0
 
 main :: IO ()
 main = do
-  printThing
+  --printThing
 
   -- Initialise SDL
   SDL.initializeAll
@@ -49,6 +49,7 @@ main = do
 
   -- Create opengl context
   context <- SDL.glCreateContext window
+  SDL.swapInterval SDL.$= SDL.ImmediateUpdates
 
   -- Generate render function (it has some state in IO)
   renderFun <- renderGame

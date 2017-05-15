@@ -15,6 +15,9 @@ cabal-version:       >=1.10
 executable tyke
   hs-source-dirs:      src
   main-is:             Main.hs
+-- uncomment on windows
+--  extra-lib-dirs:      windeps/lib
+--  include-dirs:  windeps/include
   default-language:    Haskell2010
   ghc-options:         -O2
                        -threaded
