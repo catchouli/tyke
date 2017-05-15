@@ -64,7 +64,7 @@ renderGame = do
   renderer <- LC.allocRenderer pipelineDesc
 
   -- Generate some random terrain
-  terrain <- randomChunk (50, 5, 50)
+  terrain <- randomChunk (16, 16, 16)
   let terrainMesh = genChunkMesh terrain
   LC.uploadMeshToGPU terrainMesh >>=
     LC.addMeshToObjectArray storage "objects" []

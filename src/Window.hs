@@ -77,6 +77,7 @@ gameLoop window fTimestep inputHandler tickHandler renderHandler = do
         -- Render the game
         renderHandler
 
+        newFrame
         renderGui
 
         -- Swap buffer
