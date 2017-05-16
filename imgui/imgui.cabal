@@ -17,6 +17,8 @@ library
   hs-source-dirs:      src
   extra-libraries:     stdc++
   exposed-modules:     ImGui
+  if os(windows)
+    extra-libraries:   imm32
   c-sources:           ../cimgui/imgui/imgui.cpp
                      , ../cimgui/imgui/imgui_draw.cpp
                      , ../cimgui/imgui/imgui_demo.cpp
