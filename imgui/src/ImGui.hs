@@ -21,6 +21,17 @@ C.include "<stdio.h>"
 C.include "<GL/gl.h>"
 C.include "cimgui_openglrender.inl"
 
+
+data InputData = InputData { mousePos :: (Float, Float)
+                           , mouseDown :: (Bool, Bool, Bool, Bool, Bool)
+                           , mouseWheel :: Float
+                           , keyCtrl :: Bool
+                           , keyShift :: Bool
+                           , keyAlt :: Bool
+                           , keySuper :: Bool
+                           }
+
+
 printThing :: IO ()
 printThing = do
   x <- [C.exp| int{5*10*15*10*10} |]
@@ -60,15 +71,32 @@ initialiseGui =
   |]
 
 
-newFrame :: IO ()
-newFrame = do
+newFrame :: InputData -> IO ()
+newFrame inputData = do
+  let InputData mousePos mouseDown mouseWheel keyCtrl keyShift keyAlt keySuper = inputData
+  let (mouseX, mouseY) = (C.CFloat $ fst mousePos, C.CFloat $ snd mousePos)
+  let (lmbDown, rmbDown, mmbDown, x1Down, x2Down) = mouseDown
+  let cbool b = if b then C.CInt 1 else C.CInt 0
+  let (lmbDownc, rmbDownc, mmbDownc, x1Downc, x2Downc) = (cbool lmbDown, cbool rmbDown, cbool mmbDown, cbool x1Down, cbool x2Down)
   putStrLn "newFrame"
   [C.block|
     void {
-      printf("new frame\n");
+      // Input
+      struct ImGuiIO* io = igGetIO();
+      io->MousePos.x = $(float mouseX);
+      io->MousePos.y = $(float mouseY);
+      io->MouseDown[0] = $(int lmbDownc);
+      io->MouseDown[1] = $(int rmbDownc);
+      io->MouseDown[2] = $(int mmbDownc);
+      io->MouseDown[3] = $(int x1Downc);
+      io->MouseDown[4] = $(int x2Downc);
+      //
+    
+      // Start new frame
       igNewFrame();
-//
-  bool i;
+      
+      // test gui
+      bool i;
       igBegin("a", &i, 0);
       igLabelText("test", "AAA");
       igLabelText("test", "AAA");

@@ -67,7 +67,20 @@ gameLoop window fTimestep inputHandler tickHandler renderHandler = do
                                          _                  -> return ()
              _                   -> return ()
           )
-
+          
+        -- Get input data
+        mb <- SDL.getMouseButtons
+        mousePos <- SDL.getAbsoluteMouseLocation >>= \(SDL.P (SDL.V2 x y)) -> return (fromIntegral x, fromIntegral y)
+        let mouseDown = ( mb SDL.ButtonLeft, mb SDL.ButtonMiddle
+                        , mb SDL.ButtonRight, mb SDL.ButtonX1, mb SDL.ButtonX2
+                        )
+        let mouseWheel = 0
+        let keyCtrl = False
+        let keyShift = False
+        let keyAlt = False
+        let keySuper = False
+        let inputData = InputData mousePos mouseDown mouseWheel keyCtrl keyShift keyAlt keySuper
+                    
         -- Send events to the input event sink
         mapM_ inputHandler events
 
@@ -77,7 +90,7 @@ gameLoop window fTimestep inputHandler tickHandler renderHandler = do
         -- Render the game
         renderHandler
 
-        newFrame
+        newFrame inputData
         renderGui
 
         -- Swap buffer

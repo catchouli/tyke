@@ -9,17 +9,18 @@ void renderGui(struct ImDrawData* d) {
     };
 
     int vertexCount = ImDrawList_GetVertexBufferSize(cmd_list);
-    printf("vertexCount %d\n", vertexCount);
+    //printf("vertexCount %d\n", vertexCount);
     struct verts* vertices = (struct verts*)ImDrawList_GetVertexPtr(cmd_list, 0);
     int indexCount = ImDrawList_GetIndexBufferSize(cmd_list);
     unsigned short* indices = (unsigned short*)ImDrawList_GetIndexPtr(cmd_list, 0);
 
-    glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    //glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+    //glClear(GL_COLOR_BUFFER_BIT);
 
     glLoadIdentity();
     glOrtho(0.0f, 800.0f, 0.0f, 600.0f, -100.0f, 100.0f);
     glColor3f(0.0f, 1.0f, 0.0f);
+    glCullFace(GL_NONE);
 
     unsigned short* idx_buffer = indices;
     int cmdCount = ImDrawList_GetCmdSize(cmd_list);
@@ -29,7 +30,7 @@ void renderGui(struct ImDrawData* d) {
         cmd->UserCallback(cmd_list, cmd);
       }
       else {
-        printf("render this command\n");
+        //printf("render this command\n");
 
         glBindTexture(GL_TEXTURE_2D, (GLuint)cmd->TextureId);
 

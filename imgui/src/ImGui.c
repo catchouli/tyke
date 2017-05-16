@@ -45,12 +45,24 @@ void inline_c_ImGui_1_3cfd709122091a297ac9cbbe0f079fabea3370c5() {
 }
 
 
-void inline_c_ImGui_2_159a746c85e20c2a1824e238a5d01a749c9aef67() {
+void inline_c_ImGui_2_e6c39c8c2ceed5c9e972ea8ed96220403aada517(float mouseX_inline_c_0, float mouseY_inline_c_1, int lmbDownc_inline_c_2, int rmbDownc_inline_c_3, int mmbDownc_inline_c_4, int x1Downc_inline_c_5, int x2Downc_inline_c_6) {
 
-      printf("new frame\n");
+      // Input
+      struct ImGuiIO* io = igGetIO();
+      io->MousePos.x = mouseX_inline_c_0;
+      io->MousePos.y = mouseY_inline_c_1;
+      io->MouseDown[0] = lmbDownc_inline_c_2;
+      io->MouseDown[1] = rmbDownc_inline_c_3;
+      io->MouseDown[2] = mmbDownc_inline_c_4;
+      io->MouseDown[3] = x1Downc_inline_c_5;
+      io->MouseDown[4] = x2Downc_inline_c_6;
+      //
+    
+      // Start new frame
       igNewFrame();
-//
-  bool i;
+      
+      // test gui
+      bool i;
       igBegin("a", &i, 0);
       igLabelText("test", "AAA");
       igLabelText("test", "AAA");
