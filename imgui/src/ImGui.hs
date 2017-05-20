@@ -42,7 +42,6 @@ initialiseGui :: IO ()
 initialiseGui =
   [C.block|
     void {
-      printf("initialising gui\n");
       struct ImGuiIO* io = igGetIO();
 
       // Settings
@@ -53,7 +52,7 @@ initialiseGui =
       io->RenderDrawListsFn = renderGui;
 
       // Texture
-      unsigned char* pix;
+      unsigned char* pix = 0;
       int w, h, bpp;
       ImFontAtlas_GetTexDataAsRGBA32(io->Fonts, &pix, &w, &h, &bpp);
 
@@ -78,7 +77,6 @@ newFrame inputData = do
   let (lmbDown, rmbDown, mmbDown, x1Down, x2Down) = mouseDown
   let cbool b = if b then C.CInt 1 else C.CInt 0
   let (lmbDownc, rmbDownc, mmbDownc, x1Downc, x2Downc) = (cbool lmbDown, cbool rmbDown, cbool mmbDown, cbool x1Down, cbool x2Down)
-  putStrLn "newFrame"
   [C.block|
     void {
       // Input
@@ -121,13 +119,10 @@ newFrame inputData = do
 
 renderGui :: IO ()
 renderGui = do
-  putStrLn "renderGui"
   [C.block|
     void {
-      //glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-      //glClear(GL_COLOR_BUFFER_BIT);
-      printf("creating label text\n");
-      printf("rendering\n");
       igRender();
+      //
+        //
     }
   |]

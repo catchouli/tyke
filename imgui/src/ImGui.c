@@ -1,6 +1,8 @@
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "../../cimgui/cimgui/cimgui.h"
 
 #include <stdio.h>
@@ -9,14 +11,15 @@
 
 #include "cimgui_openglrender.inl"
 
+#include "stb_image_write.h"
+
 int inline_c_ImGui_0_52f02ec7bdae81697a43b4b9d11802bc16151a55() {
 return (5*10*15*10*10);
 }
 
 
-void inline_c_ImGui_1_3cfd709122091a297ac9cbbe0f079fabea3370c5() {
+void inline_c_ImGui_1_cdb88f3c4f04ef2db62740867cbc12262478c5c8() {
 
-      printf("initialising gui\n");
       struct ImGuiIO* io = igGetIO();
 
       // Settings
@@ -27,9 +30,16 @@ void inline_c_ImGui_1_3cfd709122091a297ac9cbbe0f079fabea3370c5() {
       io->RenderDrawListsFn = renderGui;
 
       // Texture
-      unsigned char* pix;
+      unsigned char* pix = 0;
       int w, h, bpp;
       ImFontAtlas_GetTexDataAsRGBA32(io->Fonts, &pix, &w, &h, &bpp);
+      //for (int i = 0; i < w * h; ++i) {
+      //  int y = i / w;
+      //  printf("%d\n", y);
+      //  ((unsigned int*)pix)[i] = ((y > 30 && y < 40) ? 0xFFFF00FF : 0xFF00FF00);
+      //}
+      printf("ptr: %d %d %d %d\n", pix, bpp, w, h);
+      stbi_write_bmp("out.png", w, h, 4, pix);
 
       GLuint fontTex;
       glGenTextures(1, &fontTex);
@@ -39,6 +49,10 @@ void inline_c_ImGui_1_3cfd709122091a297ac9cbbe0f079fabea3370c5() {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+      //printf("creating texture: %d\n", fontTex);
+      //
+      //
 
       ImFontAtlas_SetTexID(io->Fonts, (void*)fontTex);
     
@@ -85,13 +99,11 @@ void inline_c_ImGui_2_e6c39c8c2ceed5c9e972ea8ed96220403aada517(float mouseX_inli
 }
 
 
-void inline_c_ImGui_3_587f643316c85f0452f9dd430ce8e09be30abcac() {
+void inline_c_ImGui_3_09ebaf299149b8ab03cc3f0bc1fbeb95d4a455a1() {
 
-      //glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-      //glClear(GL_COLOR_BUFFER_BIT);
-      printf("creating label text\n");
-      printf("rendering\n");
       igRender();
+      //
+        //
     
 }
 

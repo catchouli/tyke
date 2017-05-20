@@ -111,17 +111,18 @@ renderGame = do
     let time = (fromIntegral ticks / 1000)
 
     -- Update uniforms
-    LC.setScreenSize storage 800 600
-    LC.updateUniforms storage $ do
-      "projection"     LC.@= return projection
-      "diffuseTexture" LC.@= return textureData
-      "time"           LC.@= return (time :: Float)
+    --LC.setScreenSize storage 800 600
+    --LC.updateUniforms storage $ do
+    --  "projection"     LC.@= return projection
+    --  "diffuseTexture" LC.@= return textureData
+    --  "time"           LC.@= return (time :: Float)
 
     -- Render a frame
-    LC.renderFrame renderer
+    --LC.renderFrame renderer
 
     -- Render debug tex
-    renderStats font fps
+    --renderStats font fps
+    return ()
 
 
 -- | Render stats

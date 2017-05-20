@@ -15,17 +15,11 @@ extra-source-files:  README.md
 
 library
   hs-source-dirs:      src
-  extra-libraries:     stdc++
+  extra-libraries:     stdc++, cimgui
   exposed-modules:     ImGui
   if os(windows)
     extra-libraries:   imm32
-  c-sources:           ../cimgui/imgui/imgui.cpp
-                     , ../cimgui/imgui/imgui_draw.cpp
-                     , ../cimgui/imgui/imgui_demo.cpp
-                     , ../cimgui/cimgui/cimgui.cpp
-                     , ../cimgui/cimgui/drawList.cpp
-                     , ../cimgui/cimgui/fontAtlas.cpp
-                     , src/ImGui.c
+  c-sources: src/ImGui.c
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , inline-c

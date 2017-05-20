@@ -1,0 +1,1 @@
+g++ ../../cimgui/imgui/imgui_draw.cpp ../../cimgui/imgui/imgui_demo.cpp ../../cimgui/imgui/imgui.cpp ../../cimgui/cimgui/cimgui.cpp ../../cimgui/cimgui/fontAtlas.cpp ../../cimgui/cimgui/drawList.cpp -shared -fPIC -o libcimgui.so
