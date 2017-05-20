@@ -1,0 +1,1 @@
+void renderGui(struct ImDrawData*);

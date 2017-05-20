@@ -13,13 +13,14 @@
 module ImGui where
 
 import Foreign.Ptr
+import Foreign.C.String
 import qualified Language.C.Inline as C
 
 C.verbatim "#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS"
 C.include "../../cimgui/cimgui/cimgui.h"
 C.include "<stdio.h>"
 C.include "<GL/gl.h>"
-C.include "cimgui_openglrender.inl"
+C.include "cimgui_openglrender.h"
 
 
 data InputData = InputData { mousePos :: (Float, Float)
@@ -88,31 +89,9 @@ newFrame inputData = do
       io->MouseDown[2] = $(int mmbDownc);
       io->MouseDown[3] = $(int x1Downc);
       io->MouseDown[4] = $(int x2Downc);
-      //
     
       // Start new frame
       igNewFrame();
-      
-      // test gui
-      bool i;
-      igBegin("a", &i, 0);
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igEnd();
     }
   |]
 
@@ -122,7 +101,37 @@ renderGui = do
   [C.block|
     void {
       igRender();
-      //
-        //
     }
   |]
+
+
+igBegin :: String -> IO Bool
+igBegin name = do
+  b <- withCString name $ \n ->
+         [C.block|
+           int {
+             bool open;
+             igBegin($(const char* n), &open, 0);
+             return open;
+           }
+         |]
+  return (b /= 0)
+
+
+igEnd :: IO ()
+igEnd = do
+  [C.block|
+    void {
+      igEnd();
+    }
+  |]
+
+
+igText :: String -> IO ()
+igText text = do
+  withCString text $ \t ->
+    [C.block|
+      void {
+        igText($(const char* t));
+      }
+    |]

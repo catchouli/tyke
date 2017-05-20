@@ -23,8 +23,11 @@ import Data.Text (Text)
 import Foreign.C.Types
 import Data.Time.Clock.POSIX
 import Control.Concurrent.MVar
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import ImGui
+import Data.Ratio (numerator)
+import Graphics.GL.Compatibility33
+
 
 import qualified SDL
 
@@ -45,7 +48,7 @@ gameLoop window fTimestep inputHandler tickHandler renderHandler = do
   let exit = void $ swapMVar quit True
 
   -- Main loop
-  let loop lastTime = do 
+  let loop lastTime frameTimeCpu frameTimeTotal = do 
 
         -- Current time
         currentTime <- getPOSIXTime
@@ -87,17 +90,38 @@ gameLoop window fTimestep inputHandler tickHandler renderHandler = do
         -- Perform tick however many times we need to meet the fixed timestep
         replicateM_ passedTimeSteps (tickHandler fTimestep)
 
+        -- New imgui frame
+        newFrame inputData
+
+        -- Render time
+        igBegin "Status"
+        igText ("Frame time (CPU): " ++ show frameTimeCpu)
+        igText ("Frame time (total): " ++ show frameTimeTotal)
+        igEnd
+
         -- Render the game
         renderHandler
 
-        newFrame inputData
+        -- Render imgui
         renderGui
+
+        -- Check for opengl errors
+        e <- glGetError
+        when (e /= 0) (putStrLn $ "opengl error: " ++ show e)
+
+        -- Get frame end cpu time
+        frameEndCpuTime <- getPOSIXTime
+        let frameTimeCpu = frameEndCpuTime - currentTime
 
         -- Swap buffer
         SDL.glSwapWindow window
 
+        -- Get frame end total time
+        frameEndTime <- getPOSIXTime
+        let frameTime = frameEndTime - currentTime
+
         -- Loop, or quit if requested
         quitting <- readMVar quit
-        unless quitting (loop newLastTime)
+        unless quitting (loop newLastTime frameTimeCpu frameTime)
 
-    in getPOSIXTime >>= loop
+    in getPOSIXTime >>= \t -> loop t 0 0

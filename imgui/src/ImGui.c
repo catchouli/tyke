@@ -1,24 +1,20 @@
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
 #include "../../cimgui/cimgui/cimgui.h"
 
 #include <stdio.h>
 
 #include <GL/gl.h>
 
-#include "cimgui_openglrender.inl"
-
-#include "stb_image_write.h"
+#include "cimgui_openglrender.h"
 
 int inline_c_ImGui_0_52f02ec7bdae81697a43b4b9d11802bc16151a55() {
 return (5*10*15*10*10);
 }
 
 
-void inline_c_ImGui_1_cdb88f3c4f04ef2db62740867cbc12262478c5c8() {
+void inline_c_ImGui_1_bb603511e96a8b085ef6d2dda227638c89fd3ffb() {
 
       struct ImGuiIO* io = igGetIO();
 
@@ -33,13 +29,6 @@ void inline_c_ImGui_1_cdb88f3c4f04ef2db62740867cbc12262478c5c8() {
       unsigned char* pix = 0;
       int w, h, bpp;
       ImFontAtlas_GetTexDataAsRGBA32(io->Fonts, &pix, &w, &h, &bpp);
-      //for (int i = 0; i < w * h; ++i) {
-      //  int y = i / w;
-      //  printf("%d\n", y);
-      //  ((unsigned int*)pix)[i] = ((y > 30 && y < 40) ? 0xFFFF00FF : 0xFF00FF00);
-      //}
-      printf("ptr: %d %d %d %d\n", pix, bpp, w, h);
-      stbi_write_bmp("out.png", w, h, 4, pix);
 
       GLuint fontTex;
       glGenTextures(1, &fontTex);
@@ -50,16 +39,12 @@ void inline_c_ImGui_1_cdb88f3c4f04ef2db62740867cbc12262478c5c8() {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-      //printf("creating texture: %d\n", fontTex);
-      //
-      //
-
       ImFontAtlas_SetTexID(io->Fonts, (void*)fontTex);
     
 }
 
 
-void inline_c_ImGui_2_e6c39c8c2ceed5c9e972ea8ed96220403aada517(float mouseX_inline_c_0, float mouseY_inline_c_1, int lmbDownc_inline_c_2, int rmbDownc_inline_c_3, int mmbDownc_inline_c_4, int x1Downc_inline_c_5, int x2Downc_inline_c_6) {
+void inline_c_ImGui_2_7b444b45ed81f292e1a86beeb65cc9d6b7ebf271(float mouseX_inline_c_0, float mouseY_inline_c_1, int lmbDownc_inline_c_2, int rmbDownc_inline_c_3, int mmbDownc_inline_c_4, int x1Downc_inline_c_5, int x2Downc_inline_c_6) {
 
       // Input
       struct ImGuiIO* io = igGetIO();
@@ -70,40 +55,39 @@ void inline_c_ImGui_2_e6c39c8c2ceed5c9e972ea8ed96220403aada517(float mouseX_inli
       io->MouseDown[2] = mmbDownc_inline_c_4;
       io->MouseDown[3] = x1Downc_inline_c_5;
       io->MouseDown[4] = x2Downc_inline_c_6;
-      //
     
       // Start new frame
       igNewFrame();
-      
-      // test gui
-      bool i;
-      igBegin("a", &i, 0);
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
-      igLabelText("test", "AAA");
+    
+}
+
+
+void inline_c_ImGui_3_ccb45e38de6c3492fffc1a1b28df0121c098e349() {
+
+      igRender();
+    
+}
+
+
+int inline_c_ImGui_4_44de12c5a3b5c6130ba49e8f1c2d76724066337e(const char * n_inline_c_0) {
+
+             bool open;
+             igBegin(n_inline_c_0, &open, 0);
+             return open;
+           
+}
+
+
+void inline_c_ImGui_5_a6af349ca90cd012f388eb8324797acafa0d6ad5() {
+
       igEnd();
     
 }
 
 
-void inline_c_ImGui_3_09ebaf299149b8ab03cc3f0bc1fbeb95d4a455a1() {
+void inline_c_ImGui_6_a183aee5b69591ddc44bda9a6c21f4c873fa7e86(const char * t_inline_c_0) {
 
-      igRender();
-      //
-        //
-    
+        igText(t_inline_c_0);
+      
 }
 

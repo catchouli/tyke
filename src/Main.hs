@@ -50,7 +50,6 @@ main = do
   SDL.swapInterval SDL.$= SDL.ImmediateUpdates
 
   -- Initialise imgui
-  putStrLn "initialising gui"
   initialiseGui
 
   -- Generate render function (it has some state in IO)

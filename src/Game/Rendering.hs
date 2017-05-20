@@ -15,6 +15,7 @@ module Game.Rendering
   )
 where
 
+import ImGui
 import Control.Lens
 import System.Random
 import Game.Data
@@ -34,7 +35,6 @@ import qualified LambdaCube.Linear               as LC
 import qualified Data.Map                        as Map
 import qualified Data.Vector                     as V
 import qualified Data.ByteString                 as BS
-  
 
 -- | Render the game based on its current state
 
@@ -64,7 +64,7 @@ renderGame = do
   renderer <- LC.allocRenderer pipelineDesc
 
   -- Generate some random terrain
-  terrain <- randomChunk (16, 16, 16)
+  terrain <- randomChunk (50, 3, 50)
   let terrainMesh = genChunkMesh terrain
   LC.uploadMeshToGPU terrainMesh >>=
     LC.addMeshToObjectArray storage "objects" []
@@ -111,21 +111,18 @@ renderGame = do
     let time = (fromIntegral ticks / 1000)
 
     -- Update uniforms
-    --LC.setScreenSize storage 800 600
-    --LC.updateUniforms storage $ do
-    --  "projection"     LC.@= return projection
-    --  "diffuseTexture" LC.@= return textureData
-    --  "time"           LC.@= return (time :: Float)
+    LC.setScreenSize storage 800 600
+    LC.updateUniforms storage $ do
+      "projection"     LC.@= return projection
+      "diffuseTexture" LC.@= return textureData
+      "time"           LC.@= return (time :: Float)
 
     -- Render a frame
-    --LC.renderFrame renderer
-
-    -- Render debug tex
-    --renderStats font fps
-    return ()
+    LC.renderFrame renderer
 
 
 -- | Render stats
+-- Unused in favor of imgui, but might need it again
 
 renderStats :: Font -> Int -> IO ()
 renderStats font fps = do
