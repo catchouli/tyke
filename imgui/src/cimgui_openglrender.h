@@ -1,5 +1,3 @@
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
-#include "../../cimgui/cimgui/cimgui.h"
 #include <stdio.h>
 #include <GL/gl.h>
 
