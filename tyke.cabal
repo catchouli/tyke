@@ -21,6 +21,19 @@ executable tyke
   default-language:    Haskell2010
   ghc-options:         -O2
                        -threaded
+                       -pgmlg++
+  other-modules:       Framework
+                     , Game
+                     , Game.Data
+                     , Game.Rendering
+                     , Game.Simulation
+                     , Game.Simulation.Camera.FPSCamera
+                     , Game.Simulation.Camera.IsometricCamera
+                     , Game.Simulation.Input
+                     , Game.Terrain
+                     , Game.Terrain.Data
+                     , Game.Terrain.Rendering
+                     , Window
   build-depends:       base >= 4.7 && < 5
                      -- System
                      , random

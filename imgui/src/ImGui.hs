@@ -20,6 +20,7 @@ C.verbatim "#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS"
 C.include "../../cimgui/cimgui/cimgui.h"
 C.include "<stdio.h>"
 C.include "<GL/gl.h>"
+-- include c source directly or it causes a linker error with ghci..
 C.include "cimgui_openglrender.h"
 
 
