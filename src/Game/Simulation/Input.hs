@@ -18,6 +18,7 @@ module Game.Simulation.Input
   , mouseButtonPressed
   , mouseButtonReleased
   , mouseMoved
+  , mouseWheelMoved
   , RetType(..)
   )
 where
@@ -182,9 +183,42 @@ mouseMoveValue Delta (SDL.MouseMotionEventData _ _ _ _ (V2 x y)) =
 mouseMoveValue Absolute (SDL.MouseMotionEventData _ _ _ (P (V2 x y)) _) =
                                        V2 (fromIntegral x) (fromIntegral y)
 
+
 -- | An event that fires when the mouse moves and reports either the
 -- difference in position or the new position
 
 mouseMoved :: InputEvent -> RetType -> Event (V2 Float)
 mouseMoved eInput retType = let events = mouseMotionEvents eInput
                             in mouseMoveValue retType <$> events
+
+
+-- | Predicate to determine whether the given SDL event is a mouse wheel event
+
+isMouseWheelEvent :: SDL.Event -> Bool
+isMouseWheelEvent e = case SDL.eventPayload e of
+                    SDL.MouseWheelEvent _  -> True
+                    _                      -> False
+
+
+-- | Filters input events down to just mouse wheel events
+
+mouseWheelEvents :: InputEvent -> Event SDL.MouseWheelEventData
+mouseWheelEvents eInput = let mwEvents = filterE isMouseWheelEvent eInput
+                              getMwEventData = (\x ->
+                                let SDL.MouseWheelEvent d = SDL.eventPayload x in d)
+                              eventData = getMwEventData <$> mwEvents
+                          in eventData
+
+
+-- | Mouse wheel changed value
+
+mouseWheelValue :: SDL.MouseWheelEventData -> Float
+mouseWheelValue (SDL.MouseWheelEventData _ _ (V2 _ y) _) = fromIntegral y
+
+
+-- | An event that fires when the mouse wheel moves
+
+mouseWheelMoved :: InputEvent -> Event Float
+mouseWheelMoved eInput = let events = mouseWheelEvents eInput
+                         in mouseWheelValue <$> events
+

@@ -17,7 +17,8 @@ import qualified SDL.Event          as SDL
 import qualified SDL.Input.Keyboard as SDL
 
 
--- | Focal point of the camera in block space (starting at the bottom left most corner of (0,0))
+-- | Focal point of the camera in block space (starting at the
+-- bottom left most corner of (0,0))
 type InitialPos = V3 Float
 
 -- | Aspect ratio of a window
@@ -31,7 +32,7 @@ mixedCamera :: InputEvent
             -> InitialPos
             -> Aspect
             -> MomentIO (Behavior Camera)
-mixedCamera eInput eTick initialPos eAspect = do
+mixedCamera eInput eTick initialPos aspect = do
   -- Perspective fov
   let initialFov = pi / 3
 
@@ -39,6 +40,8 @@ mixedCamera eInput eTick initialPos eAspect = do
   let initialRot = V2 (pi/6.0) (-pi/6.0)
 
   -- Distance at initialFov
+  let minDist = 5.0
+  let maxDist = 30.0
   let initialDist = 15.0
 
   -- Camera FOV behavior
@@ -59,15 +62,20 @@ mixedCamera eInput eTick initialPos eAspect = do
   -- The formula for the dolly zoom is distance = width / 2tan(0.5fov)
   -- So we first solve for width using the initial values, and then
   -- solve for distance
-  let screenWidth = 2.0 * initialDist * tan (0.5 * initialFov)
+  let clampDist = max minDist . min maxDist
+  let calcScreenWidth dist = 2.0 * clampDist dist * tan (0.5 * initialFov)
+  let initialScreenWidth = calcScreenWidth initialDist
+  bCamDist <- accumB initialDist ((\a b -> clampDist . subtract a $ b) <$> mouseWheelMoved eInput)
+  let bScreenWidth = calcScreenWidth <$> bCamDist
 
   -- The projection matrix
   -- Switch between perspective and ortho when the fov drops to its minimum value
   -- This fixes any visual error that occurs from such a small fov
-  let bPerspective = infinitePerspective <$> bCamFov <*> pure eAspect <*> pure 0.1
-  let bOrthographic = pure $ ortho (-screenWidth/2) (screenWidth/2)
-          (-screenWidth*eAspect/2) (screenWidth*eAspect/2) (-1000.0) 1000.0
-  let bProjection = (\a b c -> if a == minFovValue then b else c) <$> bCamFov <*> bOrthographic <*> bPerspective
+  let calcOrtho sw = ortho (-sw/2) (sw/2) (-sw*aspect/2) (sw*aspect/2) (-1000) 1000000
+  let bPerspective = infinitePerspective <$> bCamFov <*> pure aspect <*> pure 0.1
+  let bOrthographic = calcOrtho <$> bScreenWidth
+  let bProjection = (\a b c -> if a == minFovValue then b else c)
+                          <$> bCamFov <*> bOrthographic <*> bPerspective
 
   -- Our camera orientation signal
   -- The orientation is based on the initialRot and generally doesn't changed
@@ -75,13 +83,14 @@ mixedCamera eInput eTick initialPos eAspect = do
   -- initialPos isn't actually the camera position but the position it's looking at
   -- bCamPos is actually the camera position for the view matrix
   bCamRot <- camOrientation eInput initialRot
-  bCamPos <- positionCamera eInput eTick initialPos screenWidth bCamFov bCamRot
+  bCamPos <- positionCamera eInput eTick initialPos bScreenWidth bCamFov bCamRot
 
   -- Construct view and mvp matrix
   let bViewMatrix = viewMatrix <$> bCamPos <*> bCamRot
   let bMvpMatrix = (!*!) <$> bProjection <*> bViewMatrix
 
-  return $ Camera <$> bProjection <*> bViewMatrix <*> bMvpMatrix <*> bCamPos <*> bCamRot <*> bCamFov
+  return $ Camera <$> bProjection <*> bViewMatrix <*> bMvpMatrix
+                  <*> bCamPos <*> bCamRot <*> bCamFov
 
 
 -- | Convert a translation matrix and a quaternion to a view matrix
@@ -99,11 +108,11 @@ viewMatrix camTranslation camOrientation =
 positionCamera :: InputEvent
                -> TickEvent
                -> V3 Float
-               -> Float
+               -> Behavior Float
                -> Behavior Float
                -> Behavior (Quaternion Float)
                -> MomentIO (Behavior (V3 Float))
-positionCamera eInput eTick initialPos screenWidth bFov bCamRot = do
+positionCamera eInput eTick initialPos bScreenWidth bFov bCamRot = do
   let speed = 0.1
 
   forwardButton <- keyDown eInput SDL.ScancodeW
@@ -113,7 +122,8 @@ positionCamera eInput eTick initialPos screenWidth bFov bCamRot = do
   up <- keyDown eInput SDL.ScancodeW
 
   -- Calculate distance from focal point to achieve desired screen width
-  let bCamDist = (\fov -> screenWidth / (2.0 * tan(0.5 * fov))) <$> bFov
+  let calcCamDist screenWidth fov = screenWidth / (2.0 * tan (0.5 * fov))
+  let bCamDist = calcCamDist <$> bScreenWidth <*> bFov
 
   -- Forward vector
   let bForwardVec = (!*) <$> (fromQuaternion <$> bCamRot) <*> pure (V3 0 0 (1))
@@ -121,15 +131,15 @@ positionCamera eInput eTick initialPos screenWidth bFov bCamRot = do
   -- Move the camera back from the block we're looking at by initialDist units
   let bCamOffset = (^*) <$> (bForwardVec) <*> bCamDist
 
-  let eMouseMoved = mouseMoved eInput Absolute
-
+  -- Camera movement
   let bVelocity = (camVelocity speed <$> bCamRot <*> left <*> right
                                      <*> down <*> up)
-
   let bAddVelocity = (+) <$> bVelocity
   let eAddVelocity = bAddVelocity <@ eTick
 
+  -- The block coordinate the camera is looking at
   bCamLookingAtPos <- accumB initialPos eAddVelocity
+  -- Offset the camera back so we're looking at this block
   let bCamPos = (+) <$> bCamLookingAtPos <*> bCamOffset
 
   return bCamPos
