@@ -7,12 +7,17 @@
 -- 
 -- 
 
+{-# LANGUAGE TemplateHaskell #-}
+
 module Game.Data
   ( Game(..)
+  , gameCamera
   )
 where
 
 import Linear
+import Control.Lens
+import Game.Simulation.Camera.Camera
 
 
 -- | The main Game data type.
@@ -22,5 +27,7 @@ import Linear
 -- reactive-banana behavior, the network of which comprises
 -- the behavior of the game.
 
-data Game = Game { _camViewMat :: M44 Float
+data Game = Game { _gameCamera :: Camera
                  }
+makeLenses ''Game
+

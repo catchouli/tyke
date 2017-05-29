@@ -9,7 +9,7 @@
 
 {-# LANGUAGE LambdaCase #-}
 
-module Window
+module GameLoop
   ( gameLoop
   )
 where

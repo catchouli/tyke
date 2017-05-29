@@ -1,5 +1,8 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Game.Simulation.Camera.FPSCamera
   ( fpsCamera
+  , viewMatrix
   )
 where
 
@@ -9,6 +12,7 @@ import Control.Lens
 import Game.Simulation.Input
 import Reactive.Banana
 import Reactive.Banana.Frameworks
+import Game.Simulation.Camera.Camera
 
 import qualified SDL.Event          as SDL
 import qualified SDL.Input.Keyboard as SDL
@@ -30,17 +34,23 @@ fpsCamera :: InputEvent
           -> FOV
           -> Aspect
           -> NearVal
-          -> MomentIO (Behavior (M44 Float))
+          -> MomentIO (Behavior Camera)
 fpsCamera eInput eTick initialPos initialRot eFov eAspect eNear = do
-  let projection = infinitePerspective eFov eAspect eNear
+  bRDown <- keyDown eInput SDL.ScancodeR
+  bTDown <- keyDown eInput SDL.ScancodeT
+  let bFovChange = fovChange <$> bRDown <*> bTDown
+  let eFovChange = ((*) <$> bFovChange) <@> eTick
+  bCamFov <- accumB eFov ((+) <$> eFovChange)
+
+  let bProjection = infinitePerspective <$> bCamFov <*> pure eAspect <*> pure eNear
 
   bCamRot <- camOrientation eInput initialRot
-  bCamPos <- camPosition eInput eTick initialPos bCamRot
+  bCamPos <- positionCamera eInput eTick initialPos bCamRot
 
   let bViewMatrix = viewMatrix <$> bCamPos <*> bCamRot
-  let bMvpMatrix = (!*!) projection <$> bViewMatrix
+  let bMvpMatrix = (!*!) <$> bProjection <*> bViewMatrix
 
-  return $ bMvpMatrix
+  return $ Camera <$> bProjection <*> bViewMatrix <*> bMvpMatrix <*> bCamPos <*> bCamRot <*> bCamFov
 
 
 -- | Convert a translation matrix and a quaternion to a view matrix
@@ -55,12 +65,12 @@ viewMatrix camTranslation camOrientation =
 
 
 -- | A behavior describing the camera position
-camPosition :: InputEvent
-            -> TickEvent
-            -> V3 Float
-            -> Behavior (Quaternion Float)
-            -> MomentIO (Behavior (V3 Float))
-camPosition eInput eTick initialPos bCamRot = do
+positionCamera :: InputEvent
+               -> TickEvent
+               -> V3 Float
+               -> Behavior (Quaternion Float)
+               -> MomentIO (Behavior (V3 Float))
+positionCamera eInput eTick initialPos bCamRot = do
   let speed = 0.1
 
   forward <- keyDown eInput SDL.ScancodeW
@@ -122,3 +132,11 @@ camOrientation eInput initialRot = do
 cameraRotation :: V2 Float -> Quaternion Float
 cameraRotation (V2 yaw pitch) = axisAngle (V3 1 0 0) (pitch)
                               * axisAngle (V3 0 1 0) (yaw)
+
+
+-- | The change in fov per second according to whether the buttons are down
+
+fovChange :: Bool -> Bool -> Float
+fovChange False True =  0.5
+fovChange True False = -0.5
+fovChange _ _ = 0.0

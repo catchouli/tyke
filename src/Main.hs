@@ -4,7 +4,7 @@ module Main where
 
 import Game (gameNetwork, renderGame)
 import Framework (hostGame)
-import Window (gameLoop)
+import GameLoop (gameLoop)
 import Linear.V2
 import qualified SDL
 import ImGui

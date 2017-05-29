@@ -19,6 +19,7 @@ import ImGui
 import Control.Lens
 import System.Random
 import Game.Data
+import Game.Simulation.Camera.Camera
 import Game.Terrain
 import Game.Terrain.Rendering
 import Data.Aeson
@@ -64,7 +65,7 @@ renderGame = do
   renderer <- LC.allocRenderer pipelineDesc
 
   -- Generate some random terrain
-  terrain <- randomChunk (50, 3, 50)
+  terrain <- randomChunk (10, 1, 10)
   let terrainMesh = genChunkMesh terrain
   LC.uploadMeshToGPU terrainMesh >>=
     LC.addMeshToObjectArray storage "objects" []
@@ -86,8 +87,18 @@ renderGame = do
 
   -- The render handler to return
   return $ \game -> do
-    -- Convert view matrix to LC matrix
-    let projection = convertMatrix $ _camViewMat game
+    -- Get camera matrix and convert it to LC matrix
+    let projection = convertMatrix $ game ^. gameCamera ^. camMVPMat
+    let viewRot = (game ^. gameCamera ^. camViewMat) & translation .~ (V3 0 0 0)
+    let camForward = (V4 0 0 (-1) 0) *! viewRot
+    let cameraPos = game ^. gameCamera ^. camPosition
+    let cameraFov = game ^. gameCamera ^. camFov
+
+    igBegin "Status"
+    igText $ "Camera pos: " ++ show cameraPos
+    igText $ "Camera fov: " ++ show cameraFov
+    igText $ "Camera forward: " ++ show camForward
+    igEnd
 
     -- Update timer
     ticks <- SDL.ticks
