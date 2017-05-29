@@ -39,21 +39,35 @@ mixedCamera eInput eTick initialPos eAspect = do
   let initialRot = V2 (pi/6.0) (-pi/6.0)
 
   -- Distance at initialFov
-  let initialDist = -15.0
+  let initialDist = 15.0
 
   -- Camera FOV behavior
   -- Tweens between initialFov and a value close to 0
   -- to give an interpolation between perspective and ortho
   -- the distance also needs to be set correctly for this effect
   -- to work properly
-  bRDown <- keyDown eInput SDL.ScancodeR
-  bTDown <- keyDown eInput SDL.ScancodeT
-  let bFovChange = fovChange <$> bRDown <*> bTDown
-  let eFovChange = ((*) <$> bFovChange) <@> eTick
-  bCamFov <- accumB (pi/3) ((+) <$> eFovChange)
+  let minFovValue = 0.02
+  let eFovFadeSpeed = 0.1
+  let fovFadeFunc = \a -> max minFovValue . min initialFov . (+a)
+  let eChangeMode = keyPressed eInput SDL.ScancodeR
+  let eChangeDir = pure negate <@ eChangeMode
+  bFovFadeDir <- accumB eFovFadeSpeed eChangeDir
+  bCamFov <- accumB initialFov ((fovFadeFunc <$> bFovFadeDir) <@ eTick)
+  
+  -- Calculate desired screen width about focal point from the
+  -- initial distance given and fov
+  -- The formula for the dolly zoom is distance = width / 2tan(0.5fov)
+  -- So we first solve for width using the initial values, and then
+  -- solve for distance
+  let screenWidth = 2.0 * initialDist * tan (0.5 * initialFov)
 
   -- The projection matrix
-  let bProjection = infinitePerspective <$> bCamFov <*> pure eAspect <*> pure 0.1
+  -- Switch between perspective and ortho when the fov drops to its minimum value
+  -- This fixes any visual error that occurs from such a small fov
+  let bPerspective = infinitePerspective <$> bCamFov <*> pure eAspect <*> pure 0.1
+  let bOrthographic = pure $ ortho (-screenWidth/2) (screenWidth/2)
+          (-screenWidth*eAspect/2) (screenWidth*eAspect/2) (-1000.0) 1000.0
+  let bProjection = (\a b c -> if a == minFovValue then b else c) <$> bCamFov <*> bOrthographic <*> bPerspective
 
   -- Our camera orientation signal
   -- The orientation is based on the initialRot and generally doesn't changed
@@ -61,7 +75,7 @@ mixedCamera eInput eTick initialPos eAspect = do
   -- initialPos isn't actually the camera position but the position it's looking at
   -- bCamPos is actually the camera position for the view matrix
   bCamRot <- camOrientation eInput initialRot
-  bCamPos <- positionCamera eInput eTick initialPos initialDist initialFov bCamFov bCamRot
+  bCamPos <- positionCamera eInput eTick initialPos screenWidth bCamFov bCamRot
 
   -- Construct view and mvp matrix
   let bViewMatrix = viewMatrix <$> bCamPos <*> bCamRot
@@ -86,11 +100,10 @@ positionCamera :: InputEvent
                -> TickEvent
                -> V3 Float
                -> Float
-               -> Float
                -> Behavior Float
                -> Behavior (Quaternion Float)
                -> MomentIO (Behavior (V3 Float))
-positionCamera eInput eTick initialPos initialDist initialFov bFov bCamRot = do
+positionCamera eInput eTick initialPos screenWidth bFov bCamRot = do
   let speed = 0.1
 
   forwardButton <- keyDown eInput SDL.ScancodeW
@@ -99,16 +112,11 @@ positionCamera eInput eTick initialPos initialDist initialFov bFov bCamRot = do
   down <- keyDown eInput SDL.ScancodeS
   up <- keyDown eInput SDL.ScancodeW
 
-  -- Calculate desired screen width about focal point from the
-  -- initial distance given and fov
-  -- The formula for the dolly zoom is distance = width / 2tan(0.5fov)
-  -- So we first solve for width using the initial values, and then
-  -- solve for distance
-  let screenWidth = 2.0 * initialDist * tan (0.5 * initialFov)
+  -- Calculate distance from focal point to achieve desired screen width
   let bCamDist = (\fov -> screenWidth / (2.0 * tan(0.5 * fov))) <$> bFov
 
   -- Forward vector
-  let bForwardVec = (!*) <$> (fromQuaternion <$> bCamRot) <*> pure (V3 0 0 (-1))
+  let bForwardVec = (!*) <$> (fromQuaternion <$> bCamRot) <*> pure (V3 0 0 (1))
 
   -- Move the camera back from the block we're looking at by initialDist units
   let bCamOffset = (^*) <$> (bForwardVec) <*> bCamDist
