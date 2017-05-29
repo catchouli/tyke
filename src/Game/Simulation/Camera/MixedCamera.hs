@@ -37,7 +37,7 @@ mixedCamera eInput eTick initialPos aspect = do
   let initialFov = pi / 3
 
   -- Fixed rotation (an isometric view)
-  let initialRot = V2 (pi/6.0) (-pi/6.0)
+  let initialRot@(V2 initialYaw initialPitch) = V2 (pi/6.0) (-pi/6.0)
 
   -- Distance at initialFov
   let minDist = 5.0
@@ -63,9 +63,10 @@ mixedCamera eInput eTick initialPos aspect = do
   -- So we first solve for width using the initial values, and then
   -- solve for distance
   let clampDist = max minDist . min maxDist
+  let updateDist a = clampDist . subtract a
   let calcScreenWidth dist = 2.0 * clampDist dist * tan (0.5 * initialFov)
   let initialScreenWidth = calcScreenWidth initialDist
-  bCamDist <- accumB initialDist ((\a b -> clampDist . subtract a $ b) <$> mouseWheelMoved eInput)
+  bCamDist <- accumB initialDist (updateDist <$> mouseWheelMoved eInput)
   let bScreenWidth = calcScreenWidth <$> bCamDist
 
   -- The projection matrix
@@ -77,13 +78,21 @@ mixedCamera eInput eTick initialPos aspect = do
   let bProjection = (\a b c -> if a == minFovValue then b else c)
                           <$> bCamFov <*> bOrthographic <*> bPerspective
 
-  -- Our camera orientation signal
-  -- The orientation is based on the initialRot and generally doesn't changed
+  -- Our camera orientation
+  -- The orientation is based on the initialRot and given yaw input
+  let camRotSpeed = 0.025
+  bRotLeft <- keyDown eInput SDL.ScancodeQ
+  bRotRight <- keyDown eInput SDL.ScancodeE
+  let bRotationVel = (*camRotSpeed) <$> (cameraRotationDir <$> bRotLeft <*> bRotRight)
+  bCamYaw <- accumB (initialYaw) (((+) <$> bRotationVel) <@ eTick)
+  let bCamPitchYaw = V2 <$> bCamYaw <*> pure initialPitch
+  bCamRot <- camOrientation eInput bCamPitchYaw
+
   -- The position is based on initialPos (the focal point) and the rotation
   -- initialPos isn't actually the camera position but the position it's looking at
   -- bCamPos is actually the camera position for the view matrix
-  bCamRot <- camOrientation eInput initialRot
-  bCamPos <- positionCamera eInput eTick initialPos bScreenWidth bCamFov bCamRot
+  bCamPos <- positionCamera eInput eTick initialPos bScreenWidth
+                            bCamFov bCamPitchYaw bCamRot
 
   -- Construct view and mvp matrix
   let bViewMatrix = viewMatrix <$> bCamPos <*> bCamRot
@@ -110,9 +119,10 @@ positionCamera :: InputEvent
                -> V3 Float
                -> Behavior Float
                -> Behavior Float
+               -> Behavior (V2 Float)
                -> Behavior (Quaternion Float)
                -> MomentIO (Behavior (V3 Float))
-positionCamera eInput eTick initialPos bScreenWidth bFov bCamRot = do
+positionCamera eInput eTick initialPos bScreenWidth bFov bCamYawPitch bCamRot = do
   let speed = 0.1
 
   forwardButton <- keyDown eInput SDL.ScancodeW
@@ -132,7 +142,7 @@ positionCamera eInput eTick initialPos bScreenWidth bFov bCamRot = do
   let bCamOffset = (^*) <$> (bForwardVec) <*> bCamDist
 
   -- Camera movement
-  let bVelocity = (camVelocity speed <$> bCamRot <*> left <*> right
+  let bVelocity = (camVelocity speed <$> bCamYawPitch <*> left <*> right
                                      <*> down <*> up)
   let bAddVelocity = (+) <$> bVelocity
   let eAddVelocity = bAddVelocity <@ eTick
@@ -148,28 +158,32 @@ positionCamera eInput eTick initialPos bScreenWidth bFov bCamRot = do
 -- | Calculates the camera velocity based on speed and inputs
 -- The (bool, bool, bool, bool) is (up, down, left, right)
 
-camVelocity :: Float -> Quaternion Float -> Bool
+camVelocity :: Float -> V2 Float -> Bool
             -> Bool -> Bool -> Bool -> V3 Float
-camVelocity speed camRot left right down up =
+camVelocity speed (V2 camYaw _) left right down up =
   let horzVel    True  False = -speed
       horzVel    False True  =  speed
       horzVel    _     _     =  0
       vertVel    True  False = -speed
       vertVel    False True  =  speed
       vertVel    _     _     =  0
-  in V3 (horzVel left right)
-        (0)
-        (vertVel up down)
+      screenVel = V3 (horzVel left right) 0 (vertVel up down)
+      -- todo: tie this into the camera rotation so it can be changed at runtime
+      rotation = axisAngle (V3 0 1 0) camYaw
+  in rotate rotation screenVel
 
 
 -- | A behavior describing the camera orientation
-camOrientation :: InputEvent -> V2 Float -> MomentIO (Behavior (Quaternion Float))
-camOrientation eInput initialRot = do
+camOrientation :: InputEvent
+               -> Behavior (V2 Float)
+               -> MomentIO (Behavior (Quaternion Float))
+camOrientation eInput bPitchYaw = do
   bMouseDown <- mouseButtonDown eInput SDL.ButtonLeft
 
   let eMouseMove = (/300) <$> whenE bMouseDown (mouseMoved eInput Delta)
 
-  bCameraRotationComponents <- accumB initialRot ((+) <$> eMouseMove)
+  bCameraRotationDiff <- accumB (V2 0 0) ((+) <$> eMouseMove)
+  let bCameraRotationComponents = (+) <$> bPitchYaw <*> bCameraRotationDiff
 
   return $ cameraRotation <$> bCameraRotationComponents
 
@@ -182,9 +196,9 @@ cameraRotation (V2 yaw pitch) = axisAngle (V3 0 1 0) (yaw)
                               * axisAngle (V3 1 0 0) (pitch)
 
 
--- | The change in fov per second according to whether the buttons are down
+-- | Camera rotation direction based on inputs
 
-fovChange :: Bool -> Bool -> Float
-fovChange False True =  0.5
-fovChange True False = -0.5
-fovChange _ _ = 0.0
+cameraRotationDir :: Bool -> Bool -> Float
+cameraRotationDir True False = -1
+cameraRotationDir False True =  1
+cameraRotationDir _ _ = 0
