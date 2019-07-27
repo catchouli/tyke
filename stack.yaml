@@ -14,3 +14,5 @@ extra-deps:
 - semigroupoids-5.2
 - websockets-0.11.1.0
 resolver: lts-8.12
+extra-lib-dirs: [ "windeps/lib" ]
+extra-include-dirs: [ "windeps/include" ]
